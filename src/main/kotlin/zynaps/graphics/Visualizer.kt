@@ -3,6 +3,7 @@ package zynaps.graphics
 import zynaps.math.Matrix4
 import zynaps.math.Scalar.min
 import zynaps.math.Vector3
+import java.awt.Color
 import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
 import kotlin.math.PI
@@ -32,10 +33,7 @@ class Visualizer(private val canvas: Canvas,  private val shadowSize: Int) {
             ambient = (value.coerceIn(0F, 1F) * 255F).toInt()
         }
 
-    var backgroundColor = 0x000000
-        set(value) {
-            field = value and 0xFFFFFF
-        }
+    var background = Color.BLACK
 
     fun render(scene: Scene, camera: Camera) {
         val orthographic = Matrix4.createOrthographic(-10F, 10F, -10F, 10F, 0F, 30F)
@@ -51,7 +49,7 @@ class Visualizer(private val canvas: Canvas,  private val shadowSize: Int) {
                 },
                 Executors.callable {
                     frustum.extractPlanes(camera.viewMatrix, camera.projectionMatrix)
-                    rasterizer.clear(255 shl 24 or backgroundColor)
+                    rasterizer.clear(255 shl 24 or background.rgb)
                     rasterizer.view = camera.viewMatrix
                     rasterizer.proj = camera.projectionMatrix
                     scene.render(frustum, rasterizer)
