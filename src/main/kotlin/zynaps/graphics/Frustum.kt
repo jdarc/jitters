@@ -14,36 +14,12 @@ class Frustum : Container {
 
     fun extractPlanes(view: Matrix4, proj: Matrix4) {
         val comb = view * proj
-
-        left.x = comb.m03 + comb.m00
-        left.y = comb.m13 + comb.m10
-        left.z = comb.m23 + comb.m20
-        left.d = -(comb.m33 + comb.m30)
-
-        right.x = comb.m03 - comb.m00
-        right.y = comb.m13 - comb.m10
-        right.z = comb.m23 - comb.m20
-        right.d = -(comb.m33 - comb.m30)
-
-        bottom.x = comb.m03 + comb.m01
-        bottom.y = comb.m13 + comb.m11
-        bottom.z = comb.m23 + comb.m21
-        bottom.d = -(comb.m33 + comb.m31)
-
-        top.x = comb.m03 - comb.m01
-        top.y = comb.m13 - comb.m11
-        top.z = comb.m23 - comb.m21
-        top.d = -(comb.m33 - comb.m31)
-
-        near.x = comb.m03 + comb.m02
-        near.y = comb.m13 + comb.m12
-        near.z = comb.m23 + comb.m22
-        near.d = -(comb.m33 + comb.m32)
-
-        far.x = comb.m03 - comb.m02
-        far.y = comb.m13 - comb.m12
-        far.z = comb.m23 - comb.m22
-        far.d = -(comb.m33 - comb.m32)
+        left = Plane(comb.m03 + comb.m00, comb.m13 + comb.m10, comb.m23 + comb.m20, -(comb.m33 + comb.m30))
+        right = Plane(comb.m03 - comb.m00, comb.m13 - comb.m10, comb.m23 - comb.m20, -(comb.m33 - comb.m30))
+        bottom = Plane(comb.m03 + comb.m01, comb.m13 + comb.m11, comb.m23 + comb.m21, -(comb.m33 + comb.m31))
+        top = Plane(comb.m03 - comb.m01, comb.m13 - comb.m11, comb.m23 - comb.m21, -(comb.m33 - comb.m31))
+        near = Plane(comb.m03 + comb.m02, comb.m13 + comb.m12, comb.m23 + comb.m22, -(comb.m33 + comb.m32))
+        far = Plane(comb.m03 - comb.m02, comb.m13 - comb.m12, comb.m23 - comb.m22, -(comb.m33 - comb.m32))
     }
 
     override fun contains(box: Aabb): Containment {
@@ -69,19 +45,18 @@ class Frustum : Container {
     }
 
     companion object {
-
         fun countPointsOutside(box: Aabb, plane: Plane): Int {
             var l = 0
             val min = box.min
             val max = box.max
-            if (Plane.dotNormal(plane, Vector3(min.x, max.y, min.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(max.x, max.y, min.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(max.x, min.y, min.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(min.x, min.y, min.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(min.x, max.y, max.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(max.x, max.y, max.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(max.x, min.y, max.z)) < plane.d) ++l
-            if (Plane.dotNormal(plane, Vector3(min.x, min.y, max.z)) < plane.d) ++l
+            if (Vector3.dot(plane.normal, Vector3(min.x, min.y, min.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(min.x, min.y, max.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(min.x, max.y, min.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(min.x, max.y, max.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(max.x, min.y, min.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(max.x, min.y, max.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(max.x, max.y, min.z)) - plane.distance < 0F) ++l
+            if (Vector3.dot(plane.normal, Vector3(max.x, max.y, max.z)) - plane.distance < 0F) ++l
             return l
         }
     }

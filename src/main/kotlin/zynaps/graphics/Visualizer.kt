@@ -14,7 +14,7 @@ class Visualizer(private val canvas: Canvas,  private val shadowSize: Int) {
     private val frustum = Frustum()
     private val shadowFrustum = Frustum()
     private val rasterizer = Device(canvas.pixels, depthBuffer, canvas.width, canvas.height)
-    private val shadowRasterizer = Device(null, shadowBuffer, shadowSize, shadowSize)
+    private val shadowRasterizer = Device(IntArray(0), shadowBuffer, shadowSize, shadowSize)
     private val lightCamera = Camera((PI / 4).toFloat(), 1F, 1F, 300F)
     private var ambient = 128
 
@@ -49,7 +49,7 @@ class Visualizer(private val canvas: Canvas,  private val shadowSize: Int) {
                 },
                 Executors.callable {
                     frustum.extractPlanes(camera.viewMatrix, camera.projectionMatrix)
-                    rasterizer.clear(255 shl 24 or background.rgb)
+                    rasterizer.clear(background.rgb)
                     rasterizer.view = camera.viewMatrix
                     rasterizer.proj = camera.projectionMatrix
                     scene.render(frustum, rasterizer)

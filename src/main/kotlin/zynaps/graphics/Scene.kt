@@ -31,7 +31,9 @@ class Scene {
                 node.render(device)
                 true
             }
-            Containment.OUTSIDE -> false
+            Containment.OUTSIDE -> {
+                false
+            }
         }
     }
 }

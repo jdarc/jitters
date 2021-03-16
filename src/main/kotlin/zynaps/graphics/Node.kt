@@ -7,7 +7,7 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
     private val combinedBounds = Aabb()
     private var combinedTransform = Matrix4.IDENTITY
 
-    var parent: Node? = null
+    private var parent: Node? = null
         set(value) {
             if (value == parent) return
             field?.removeNode(this)
@@ -48,7 +48,7 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
 
     fun updateBounds() {
         combinedBounds.reset()
-        nodes.forEach { combinedBounds.aggregate(it.combinedBounds) }
+        nodes.forEach { node -> combinedBounds.aggregate(node.combinedBounds) }
         geometry?.apply { combinedBounds.aggregate(this.bounds, combinedTransform) }
     }
 

@@ -6,7 +6,7 @@ import zynaps.math.Scalar.max
 import zynaps.math.Scalar.min
 import zynaps.math.Vector3
 
-class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatArray, private val width: Int, private val height: Int) {
+class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatArray, private val width: Int, private val height: Int) {
     private var lightDir = Vector3.ZERO
     private val clipper = Clipper()
     private val gradients = Gradients()
@@ -15,14 +15,12 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
     private val midToBottom = Edge()
     private var cullFn = ::renderFront
     private var renderFn = ::clipRender
-    private val shader = if (colorBuffer != null) ::shade else ::noShade
+    private val shader = if (colorBuffer.isEmpty()) ::noShade else ::shade
 
     var material: Material = Material.DEFAULT
 
     var world = Matrix4.IDENTITY
-
     var view = Matrix4.IDENTITY
-
     var proj = Matrix4.IDENTITY
 
     var cull
@@ -42,7 +40,7 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
     }
 
     fun clear(color: Int) {
-        colorBuffer?.fill(color)
+        colorBuffer.fill(color)
         depthBuffer.fill(1F)
     }
 
@@ -61,7 +59,7 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
         }
     }
 
-    private fun fastRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(0, a, b, c, c, c)
+    private fun fastRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(3, a, b, c, c, c)
 
     private fun clipRender(a: Vertex, b: Vertex, c: Vertex) {
         if (a.x > a.w && b.x > b.w && c.x > c.w || a.x < -a.w && b.x < -b.w && c.x < -c.w ||
@@ -104,15 +102,17 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
         }
     }
 
-    private fun scanOrder(a: Vertex, b: Vertex, c: Vertex) {
-        if (a.y < b.y) {
-            if (c.y < a.y) scanConvert(c, a, b, topToMiddle, topToBottom, midToBottom, topToBottom)
-            else if (b.y < c.y) scanConvert(a, b, c, topToMiddle, topToBottom, midToBottom, topToBottom)
-            else scanConvert(a, c, b, topToBottom, topToMiddle, topToBottom, midToBottom)
-        } else {
-            if (c.y < b.y) scanConvert(c, b, a, topToBottom, topToMiddle, topToBottom, midToBottom)
-            else if (a.y < c.y) scanConvert(b, a, c, topToBottom, topToMiddle, topToBottom, midToBottom)
-            else scanConvert(b, c, a, topToMiddle, topToBottom, midToBottom, topToBottom)
+    private fun scanOrder(a: Vertex, b: Vertex, c: Vertex) = if (a.y < b.y) {
+        when {
+            c.y < a.y -> scanConvert(c, a, b, topToMiddle, topToBottom, midToBottom, topToBottom)
+            b.y < c.y -> scanConvert(a, b, c, topToMiddle, topToBottom, midToBottom, topToBottom)
+            else -> scanConvert(a, c, b, topToBottom, topToMiddle, topToBottom, midToBottom)
+        }
+    } else {
+        when {
+            c.y < b.y -> scanConvert(c, b, a, topToBottom, topToMiddle, topToBottom, midToBottom)
+            a.y < c.y -> scanConvert(b, a, c, topToBottom, topToMiddle, topToBottom, midToBottom)
+            else -> scanConvert(b, c, a, topToMiddle, topToBottom, midToBottom, topToBottom)
         }
     }
 
@@ -123,7 +123,6 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
     }
 
     private fun shade(pLeft: Edge, pRight: Edge, height: Int, screenWidth: Int) {
-        val colorBuffer = colorBuffer!!
         var offset = pLeft.y * screenWidth
         for (it in 0 until height) {
             val xStart = max(0, ceil(pLeft.x))
@@ -140,8 +139,9 @@ class Device(private val colorBuffer: IntArray?, private val depthBuffer: FloatA
                 if (z < depthBuffer[mem]) {
                     depthBuffer[mem] = z
                     val w = 1F / oneOverZ
-                    val alpha = (255 * lOverZ * w).toInt() shl 24
-                    colorBuffer[mem] = alpha or material.sample(uOverZ * w, vOverZ * w).and(0xFFFFFF)
+                    val alphaChannel = (255 * lOverZ * w).toInt() shl 24
+                    val colorChannel = material.sample(uOverZ * w, vOverZ * w) and 0xFFFFFF
+                    this.colorBuffer[mem] = alphaChannel or colorChannel
                 }
 
                 z += gradients.zOverZdX

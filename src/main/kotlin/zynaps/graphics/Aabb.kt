@@ -11,9 +11,8 @@ class Aabb {
     private var maxY = Float.NEGATIVE_INFINITY
     private var maxZ = Float.NEGATIVE_INFINITY
 
-    val min = Vector3(minX, minY, minZ)
-
-    val max = Vector3(maxX, maxY, maxZ)
+    val min get() = Vector3(minX, minY, minZ)
+    val max get() = Vector3(maxX, maxY, maxZ)
 
     fun reset() {
         minX = Float.POSITIVE_INFINITY
@@ -24,7 +23,7 @@ class Aabb {
         maxZ = Float.NEGATIVE_INFINITY
     }
 
-    fun aggregate(x: Float, y: Float, z: Float) {
+    fun aggregate(x: Float, y: Float, z: Float): Aabb {
         if (x.isFinite()) {
             if (x < minX) minX = x
             if (x > maxX) maxX = x
@@ -39,14 +38,12 @@ class Aabb {
             if (z < minZ) minZ = z
             if (z > maxZ) maxZ = z
         }
+        return this
     }
 
-    fun aggregate(other: Aabb) {
-        aggregate(other.minX, other.minY, other.minZ)
-        aggregate(other.maxX, other.maxY, other.maxZ)
-    }
+    fun aggregate(other: Aabb) = aggregate(other.minX, other.minY, other.minZ).aggregate(other.maxX, other.maxY, other.maxZ)
 
-    fun aggregate(other: Aabb, matrix: Matrix4) {
+    fun aggregate(other: Aabb, matrix: Matrix4): Aabb {
         val a = matrix.m00 * other.minX
         val b = matrix.m10 * other.maxY
         val c = matrix.m20 * other.minZ
@@ -73,6 +70,7 @@ class Aabb {
         aggregate(j + b + p + matrix.m30, k + e + q + matrix.m31, l + h + r + matrix.m32)
         aggregate(j + m + p + matrix.m30, k + n + q + matrix.m31, l + o + r + matrix.m32)
         aggregate(a + m + p + matrix.m30, d + n + q + matrix.m31, g + o + r + matrix.m32)
+        return this
     }
 }
 

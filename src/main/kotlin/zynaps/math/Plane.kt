@@ -1,10 +1,10 @@
 package zynaps.math
 
-data class Plane(var x: Float, var y: Float, var z: Float, var d: Float) {
+data class Plane(val normal: Vector3, val distance: Float) {
+
+    constructor(x: Float, y: Float, z: Float, d: Float) : this(Vector3(x, y, z), d)
 
     companion object {
-        val ZERO = Plane(0F, 0F, 0F, 0F)
-
-        fun dotNormal(p: Plane, v: Vector3) = p.x * v.x + p.y * v.y + p.z * v.z
+        val ZERO = Plane(Vector3.ZERO, 0F)
     }
 }
