@@ -21,19 +21,9 @@ class Scene {
 
     fun render(frustum: Frustum, device: Device) = root.traverseDown { node ->
         when (node.isContainedBy(frustum)) {
-            Containment.INSIDE -> {
-                device.clip = false
-                node.render(device)
-                true
-            }
-            Containment.PARTIAL -> {
-                device.clip = true
-                node.render(device)
-                true
-            }
-            Containment.OUTSIDE -> {
-                false
-            }
+            Containment.INSIDE -> node.render(device.apply { clip = false })
+            Containment.PARTIAL -> node.render(device.apply { clip = true })
+            Containment.OUTSIDE -> false
         }
     }
 }

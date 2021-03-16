@@ -18,6 +18,6 @@ class Model(private val parts: Map<Material, Mesh>) : Geometry {
         val assembler = Assembler()
         hull.vertices.toList().windowed(3, 3).forEach { (x, y, z) -> assembler.addVertex(x, y, z) }
         hull.faces.forEach { for (i in 1 until it.size - 1) assembler.createTriangle(it[0], it[i], it[i + 1]) }
-        return assembler.useNormals(NormalType.SURFACE).changeMaterial(ColorMaterial(0xFF8800)).compile()
+        return assembler.useNormals(NormalType.SURFACE).changeMaterial(ColorMaterial(0x0088FF)).compile()
     }
 }

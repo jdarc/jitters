@@ -1,7 +1,6 @@
 import zynaps.graphics.*
 import zynaps.jitters.geometry.Hull
 import zynaps.jitters.geometry.Plane
-import zynaps.jitters.geometry.Sphere
 import zynaps.jitters.physics.RigidBody
 import zynaps.jitters.physics.Simulation
 import zynaps.math.Matrix4
@@ -20,43 +19,32 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         scene.root.addNode(PhysicsNode(body).addNode(Node(Matrix4.createScale(20F), PLANE_MESH)))
     }
 
-    fun addDinosaurs() {
+    fun addModels(hullToggle: () -> Boolean) {
         val dino = getModelAndHull("dinorider.obj")
         val grunt = getModelAndHull("grunt.obj")
         val triceratops = getModelAndHull("triceratops.obj")
         val bowlingPin = getModelAndHull("bowlingpin.obj")
         val models = arrayOf(dino, grunt, triceratops, bowlingPin)
 
-        for (i in 0..9) {
-            val (model, hullPoints) = models[ThreadLocalRandom.current().nextInt(models.size)]
+        for (i in 0..49) {
+            val (model, hull, hullPoints) = models[ThreadLocalRandom.current().nextInt(models.size)]
             val body = RigidBody(Hull(hullPoints, 1.9F))
             body.moveTo(Vector3.random() + Vector3(0F, 1F + i * 3F, 0F), Matrix4.IDENTITY)
             body.isActive = true
             body.mass = 1F
             simulation.addBody(body)
-            scene.root.addNode(PhysicsNode(body).addNode(Node(Matrix4.createScale(2F), model)))
+            scene.root.addNode(
+                PhysicsNode(body)
+                    .addNode(ToggleNode { !hullToggle() }.addNode(Node(Matrix4.createScale(2F), model)))
+                    .addNode(ToggleNode { hullToggle() }.addNode(Node(Matrix4.createScale(2F), hull)))
+            )
         }
     }
 
-    fun addTower() {
-        val size = 5F
-        for (y in 1 until 5) {
-            for (z in -2 until 2) {
-                for (x in -2 until 2) {
-                    val body = RigidBody(Sphere(size))
-                    body.moveTo(Vector3(x * size * 2.1F, y * size * 3.1F, z * size * 2.1F), Matrix4.IDENTITY)
-                    body.isActive = true
-                    body.mass = 1F
-                    simulation.addBody(body)
-                    scene.root.addNode(PhysicsNode(body).addNode(Node(Matrix4.createScale(size), SPHERE_MESH)))
-                }
-            }
-        }
-    }
-
-    private fun getModelAndHull(filename: String): Pair<Model, Array<Vector3>> {
-        val dinoModel = Resources.readModel(filename)
-        return Pair(dinoModel, dinoModel.computeHull().extractPoints())
+    private fun getModelAndHull(filename: String): Triple<Model, Model, Array<Vector3>> {
+        val model = Resources.readModel(filename)
+        val hull = model.computeHull()
+        return Triple(model, hull, hull.extractPoints())
     }
 
     private companion object {

@@ -52,9 +52,10 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
         geometry?.apply { combinedBounds.aggregate(this.bounds, combinedTransform) }
     }
 
-    fun render(device: Device) {
+    open fun render(device: Device): Boolean {
         device.world = combinedTransform
         geometry?.render(device)
+        return true
     }
 
     fun isContainedBy(container: Container) = container.contains(combinedBounds)
