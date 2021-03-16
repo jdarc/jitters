@@ -2,6 +2,12 @@
 
 3D physics engine implementing convex hull collision detection and response
 
+## Running
+
+```text
+./gradlew run
+```
+
 ## License
 Copyright © 2021 Jean d'Arc
 
