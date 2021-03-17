@@ -28,7 +28,7 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
 
         for (i in 0..49) {
             val (model, hull, hullPoints) = models[ThreadLocalRandom.current().nextInt(models.size)]
-            val body = RigidBody(Hull(hullPoints, 1.9F))
+            val body = RigidBody(Hull(hullPoints, 2F))
             body.moveTo(Vector3.random() + Vector3(0F, 1F + i * 3F, 0F), Matrix4.IDENTITY)
             body.isActive = true
             body.mass = 1F

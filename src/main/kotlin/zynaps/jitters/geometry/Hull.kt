@@ -18,7 +18,7 @@ class Hull(private val points: Array<Vector3>, private val scale: Float = 1F) : 
 
     private fun localGetSupporting(v: Vector3): Vector3 {
         var out = Vector3.ZERO
-        var maxDot = -EPSILON
+        var maxDot = Float.NEGATIVE_INFINITY
         for (p in points) {
             val dot = dot(v, p)
             if (dot > maxDot) {
@@ -26,11 +26,6 @@ class Hull(private val points: Array<Vector3>, private val scale: Float = 1F) : 
                 out = p
             }
         }
-        return out * scale + v * CONVEX_DISTANCE_MARGIN
-    }
-
-    private companion object {
-        const val EPSILON = 1e15F
-        const val CONVEX_DISTANCE_MARGIN = 0.05F
+        return out * scale
     }
 }
