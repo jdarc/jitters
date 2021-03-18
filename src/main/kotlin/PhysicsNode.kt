@@ -1,6 +1,6 @@
-import zynaps.graphics.Node
-import zynaps.jitters.physics.RigidBody
-import zynaps.math.Matrix4
+import com.zynaps.graphics.Node
+import com.zynaps.physics.dynamics.RigidBody
+import com.zynaps.math.Matrix4
 
 class PhysicsNode(private val body: RigidBody) : Node() {
     override fun update(seconds: Float) {

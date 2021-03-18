@@ -1,7 +1,7 @@
-import zynaps.PhysicsLoop
-import zynaps.graphics.*
-import zynaps.graphics.Canvas
-import zynaps.jitters.physics.Simulation
+import com.zynaps.physics.PhysicsLoop
+import com.zynaps.graphics.*
+import com.zynaps.graphics.Bitmap
+import com.zynaps.physics.dynamics.Simulation
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -13,7 +13,7 @@ import javax.swing.WindowConstants
 import kotlin.system.exitProcess
 
 class MainFrame : JFrame("Jitters - Physics Engine") {
-    private var canvas: Canvas
+    private var bitmap: Bitmap
 
     init {
         defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
@@ -24,13 +24,14 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
         isResizable = false
         ignoreRepaint = true
 
-        val camera = Camera((Math.PI / 4.0).toFloat(), size.width / size.height.toFloat(), 1F, 100F)
+        val camera = Camera()
+        camera.aspectRatio = size.width / size.height.toFloat()
         camera.moveTo(-6F, 3F, 7F)
         camera.lookAt(0F, 0F, 0F)
         val control = FirstPersonControl(camera)
 
-        canvas = Canvas(width shr 1, height shr 1)
-        val visualizer = Visualizer(canvas, 1024)
+        bitmap = Bitmap(width shr 1, height shr 1)
+        val visualizer = Visualizer(bitmap, 1024)
         visualizer.background = background
 
         var toggle = false
@@ -76,6 +77,6 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
     override fun paint(g: Graphics) {
         g as Graphics2D
         val scaleOp = AffineTransformOp(AffineTransform.getScaleInstance(2.0, 2.0), AffineTransformOp.TYPE_BILINEAR)
-        g.drawImage(canvas.image, scaleOp, 0, 0)
+        g.drawImage(bitmap.image, scaleOp, 0, 0)
     }
 }
