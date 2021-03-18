@@ -11,5 +11,5 @@ class Model(private val parts: Map<Material, Mesh>) : Geometry {
         part.render(device)
     }
 
-    fun extractPoints() = parts.values.fold(emptyArray<Vector3>(), { acc, cur -> acc + cur.extractPoints() })
+    fun extractPoints() = parts.values.fold(emptyArray<Vector3>(), { acc, mesh -> acc + mesh.extractPoints() })
 }

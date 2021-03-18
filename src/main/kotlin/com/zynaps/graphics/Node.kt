@@ -44,8 +44,10 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
     open fun update(seconds: Float) = Unit
 
     open fun render(device: Device): Boolean {
-        device.world = combinedTransform
-        geometry?.render(device)
+        geometry?.apply {
+            device.world = combinedTransform
+            render(device)
+        }
         return true
     }
 
