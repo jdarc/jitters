@@ -1,6 +1,5 @@
-import com.zynaps.physics.PhysicsLoop
 import com.zynaps.graphics.*
-import com.zynaps.graphics.Bitmap
+import com.zynaps.physics.PhysicsLoop
 import com.zynaps.physics.dynamics.Simulation
 import java.awt.*
 import java.awt.event.KeyEvent

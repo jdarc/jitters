@@ -6,6 +6,7 @@ import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class Camera {
     private var view: Matrix4? = Matrix4.IDENTITY
     private var proj: Matrix4? = Matrix4.IDENTITY
@@ -54,7 +55,7 @@ class Camera {
 
     val lookAt get() = Vector3.normalize(center - eye)
 
-    val yaw get() = -atan2(-lookAt.x, -lookAt.z)
+    val yaw get() = -atan2(-lookAt.x, lookAt.z)
 
     val pitch get() = -asin(lookAt.y)
 

@@ -14,10 +14,14 @@ abstract class Shape : CollisionShape {
     open val boundingSphere get() = Settings.HUGE
 
     var restitution = 0.2F
-        set(value) { field = value.coerceIn(0F, 1F) }
+        set(value) {
+            field = value.coerceIn(0F, 1F)
+        }
 
     var friction = 0.5F
-        set(value) { field = value.coerceIn(0F, 1F) }
+        set(value) {
+            field = value.coerceIn(0F, 1F)
+        }
 
     var volume = 1F
         protected set

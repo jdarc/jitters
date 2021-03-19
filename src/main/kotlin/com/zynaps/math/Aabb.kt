@@ -8,9 +8,6 @@ class Aabb {
     private var maxY = Float.NEGATIVE_INFINITY
     private var maxZ = Float.NEGATIVE_INFINITY
 
-    val min get() = Vector3(minX, minY, minZ)
-    val max get() = Vector3(maxX, maxY, maxZ)
-
     fun reset() {
         minX = Float.POSITIVE_INFINITY
         minY = Float.POSITIVE_INFINITY
@@ -19,6 +16,15 @@ class Aabb {
         maxY = Float.NEGATIVE_INFINITY
         maxZ = Float.NEGATIVE_INFINITY
     }
+
+    fun pointsBehind(plane: Plane) = (if (plane.dot(minX, minY, minZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(minX, minY, maxZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(minX, maxY, minZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(minX, maxY, maxZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(maxX, minY, minZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(maxX, minY, maxZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(maxX, maxY, minZ) < 0F) 1 else 0) +
+                                     (if (plane.dot(maxX, maxY, maxZ) < 0F) 1 else 0)
 
     fun aggregate(x: Float, y: Float, z: Float): Aabb {
         if (x.isFinite()) {
@@ -38,36 +44,35 @@ class Aabb {
         return this
     }
 
-    fun aggregate(other: Aabb) = aggregate(other.minX, other.minY, other.minZ).aggregate(other.maxX, other.maxY, other.maxZ)
+    fun aggregate(box: Aabb) = aggregate(box.minX, box.minY, box.minZ).aggregate(box.maxX, box.maxY, box.maxZ)
 
     fun aggregate(other: Aabb, matrix: Matrix4): Aabb {
         val a = matrix.m00 * other.minX
-        val b = matrix.m10 * other.maxY
-        val c = matrix.m20 * other.minZ
-        val d = matrix.m01 * other.minX
-        val e = matrix.m11 * other.maxY
-        val f = matrix.m21 * other.minZ
-        val g = matrix.m02 * other.minX
-        val h = matrix.m12 * other.maxY
+        val b = matrix.m10 * other.minX
+        val c = matrix.m20 * other.minX
+        val d = matrix.m01 * other.minY
+        val e = matrix.m11 * other.minY
+        val f = matrix.m21 * other.minY
+        val g = matrix.m02 * other.minZ
+        val h = matrix.m12 * other.minZ
         val i = matrix.m22 * other.minZ
         val j = matrix.m00 * other.maxX
-        val k = matrix.m01 * other.maxX
-        val l = matrix.m02 * other.maxX
-        val m = matrix.m10 * other.minY
-        val n = matrix.m11 * other.minY
-        val o = matrix.m12 * other.minY
-        val p = matrix.m20 * other.maxZ
-        val q = matrix.m21 * other.maxZ
+        val k = matrix.m10 * other.maxX
+        val l = matrix.m20 * other.maxX
+        val m = matrix.m01 * other.maxY
+        val n = matrix.m11 * other.maxY
+        val o = matrix.m21 * other.maxY
+        val p = matrix.m02 * other.maxZ
+        val q = matrix.m12 * other.maxZ
         val r = matrix.m22 * other.maxZ
-        aggregate(a + b + c + matrix.m30, d + e + f + matrix.m31, g + h + i + matrix.m32)
-        aggregate(j + b + c + matrix.m30, k + e + f + matrix.m31, l + h + i + matrix.m32)
-        aggregate(j + m + c + matrix.m30, k + n + f + matrix.m31, l + o + i + matrix.m32)
-        aggregate(a + m + c + matrix.m30, d + n + f + matrix.m31, g + o + i + matrix.m32)
-        aggregate(a + b + p + matrix.m30, d + e + q + matrix.m31, g + h + r + matrix.m32)
-        aggregate(j + b + p + matrix.m30, k + e + q + matrix.m31, l + h + r + matrix.m32)
-        aggregate(j + m + p + matrix.m30, k + n + q + matrix.m31, l + o + r + matrix.m32)
-        aggregate(a + m + p + matrix.m30, d + n + q + matrix.m31, g + o + r + matrix.m32)
+        aggregate(a + m + g + matrix.m03, b + n + h + matrix.m13, c + o + i + matrix.m23)
+        aggregate(j + m + g + matrix.m03, k + n + h + matrix.m13, l + o + i + matrix.m23)
+        aggregate(j + d + g + matrix.m03, k + e + h + matrix.m13, l + f + i + matrix.m23)
+        aggregate(a + d + g + matrix.m03, b + e + h + matrix.m13, c + f + i + matrix.m23)
+        aggregate(a + m + p + matrix.m03, b + n + q + matrix.m13, c + o + r + matrix.m23)
+        aggregate(j + m + p + matrix.m03, k + n + q + matrix.m13, l + o + r + matrix.m23)
+        aggregate(j + d + p + matrix.m03, k + e + q + matrix.m13, l + f + r + matrix.m23)
+        aggregate(a + d + p + matrix.m03, b + e + q + matrix.m13, c + f + r + matrix.m23)
         return this
     }
 }
-

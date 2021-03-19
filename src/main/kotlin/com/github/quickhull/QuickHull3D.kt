@@ -1,7 +1,7 @@
 package com.github.quickhull
 
-import com.zynaps.math.Scalar.max
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sqrt
 
 class QuickHull3D(coords: FloatArray) {

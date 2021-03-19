@@ -1,9 +1,9 @@
 package com.zynaps.physics.collision
 
 import com.zynaps.math.Matrix4
-import com.zynaps.math.Scalar.max
 import com.zynaps.math.Vector3
 import kotlin.math.abs
+import kotlin.math.max
 
 internal object GjkEpaSolver {
     private val gjk = GJK()

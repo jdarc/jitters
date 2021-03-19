@@ -47,10 +47,10 @@ class FirstPersonControl(private val camera: Camera) {
 
     fun mouseMove(evt: MouseEvent) {
         if (dragging) {
-            yaw += (evt.x - lastX) * 0.005F
+            yaw -= (evt.x - lastX) * 0.005F
             pitch += (evt.y - lastY) * 0.005F
             pitch = pitch.coerceIn(-1.57F, 1.57F)
-            lookAt = Matrix4.createRotationY(yaw) * Matrix4.createRotationX(pitch) * Vector3(0F, 0F, -1F)
+            lookAt = Matrix4.createRotationY(yaw) * Matrix4.createRotationX(pitch) * Vector3(0F, 0F, 1F)
         }
         lastX = evt.x
         lastY = evt.y

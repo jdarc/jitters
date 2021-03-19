@@ -1,11 +1,11 @@
 package com.zynaps.graphics
 
 import com.zynaps.math.Matrix4
-import com.zynaps.math.Scalar.ceil
-import com.zynaps.math.Scalar.max
-import com.zynaps.math.Scalar.min
 import com.zynaps.math.Vector3
 import java.lang.Math.fma
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
 
 class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatArray, private val width: Int, private val height: Int) {
     private var lightDir = Vector3.ZERO
@@ -47,7 +47,7 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
 
     fun draw(vertexBuffer: FloatArray, indexBuffer: IntArray, elementCount: Int) {
         val normalMatrix = Matrix4.transpose(Matrix4.invert(world))
-        val transform = world * view * proj
+        val transform = proj * view * world
 
         val a = Vertex()
         val b = Vertex()
@@ -111,8 +111,8 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
     private fun shade(pLeft: Edge, pRight: Edge, height: Int, screenWidth: Int) {
         var offset = pLeft.y * screenWidth
         for (it in 0 until height) {
-            val xStart = max(0, ceil(pLeft.x))
-            var width = min(screenWidth, ceil(pRight.x)) - xStart
+            val xStart = max(0, ceil(pLeft.x).toInt())
+            var width = min(screenWidth, ceil(pRight.x).toInt()) - xStart
             var mem = offset + xStart
             val xPreStep = xStart - pLeft.x
             var z = fma(xPreStep, gradients.zOverZdX, pLeft.z)
@@ -150,8 +150,8 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
     private fun noShade(pLeft: Edge, pRight: Edge, height: Int, screenWidth: Int) {
         var offset = pLeft.y * screenWidth
         for (it in 0 until height) {
-            val xStart = max(0, ceil(pLeft.x))
-            var width = min(screenWidth, ceil(pRight.x)) - xStart
+            val xStart = max(0, ceil(pLeft.x).toInt())
+            var width = min(screenWidth, ceil(pRight.x).toInt()) - xStart
             var mem = offset + xStart
             var z = fma(xStart - pLeft.x, gradients.zOverZdX, pLeft.z)
             while (width-- > 0) {

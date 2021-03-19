@@ -2,6 +2,7 @@ package com.zynaps.graphics
 
 import com.zynaps.math.Vector3
 
+@Suppress("MemberVisibilityCanBePrivate")
 class Assembler {
     private val vertices = mutableListOf<Vector3>()
     private val vertexNormals = mutableListOf<Vector3>()

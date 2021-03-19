@@ -1,12 +1,12 @@
 package com.zynaps.physics.dynamics
 
-import com.zynaps.math.Scalar.max
-import com.zynaps.math.Scalar.min
 import com.zynaps.math.Vector3
 import com.zynaps.physics.Settings
 import com.zynaps.physics.collision.CollisionListener
 import com.zynaps.physics.collision.CollisionPoints
 import com.zynaps.physics.collision.CollisionSystem
+import kotlin.math.max
+import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Simulation : CollisionListener {
@@ -86,12 +86,12 @@ class Simulation : CollisionListener {
         for (points in collision.points) {
             points.denominator = 0F
             if (collision.body0.isMovable) {
-                val v = Vector3.cross(points.r0, collision.normal) * collision.body0.worldInvInertia
+                val v = collision.body0.worldInvInertia * Vector3.cross(points.r0, collision.normal)
                 points.denominator += collision.body0.inverseMass + Vector3.dot(collision.normal, Vector3.cross(v, points.r0))
             }
 
             if (collision.body1.isMovable) {
-                val v = Vector3.cross(points.r1, collision.normal) * collision.body1.worldInvInertia
+                val v = collision.body1.worldInvInertia * Vector3.cross(points.r1, collision.normal)
                 points.denominator += collision.body1.inverseMass + Vector3.dot(collision.normal, Vector3.cross(v, points.r1))
             }
 
@@ -137,12 +137,12 @@ class Simulation : CollisionListener {
 
             var denominator = 0F
             if (collision.body0.isMovable) {
-                val v = Vector3.cross(points.r0, tangentVel) * collision.body0.worldInvInertia
+                val v = collision.body0.worldInvInertia * Vector3.cross(points.r0, tangentVel)
                 denominator += collision.body0.inverseMass + Vector3.dot(tangentVel, Vector3.cross(v, points.r0))
             }
 
             if (collision.body1.isMovable) {
-                val v = Vector3.cross(points.r1, tangentVel) * collision.body1.worldInvInertia
+                val v = collision.body1.worldInvInertia * Vector3.cross(points.r1, tangentVel)
                 denominator += collision.body1.inverseMass + Vector3.dot(tangentVel, Vector3.cross(v, points.r1))
             }
 
@@ -150,7 +150,7 @@ class Simulation : CollisionListener {
 
             val impulseToReserve = tangentSpeed / denominator
             val i = if (impulseToReserve < collision.friction * normalImpulse) impulseToReserve else collision.friction * normalImpulse
-            collision.body0.applyBodyWorldImpulse(tangentVel * +i, points.r0)
+            collision.body0.applyBodyWorldImpulse(tangentVel * i, points.r0)
             collision.body1.applyBodyWorldImpulse(tangentVel * -i, points.r1)
         }
         collision.satisfied = true

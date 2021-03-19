@@ -3,6 +3,7 @@ package com.zynaps.graphics
 import com.zynaps.math.Aabb
 import com.zynaps.math.Matrix4
 
+@Suppress("MemberVisibilityCanBePrivate")
 open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry: Geometry? = null) {
     private val nodes = mutableSetOf<Node>()
     private val combinedBounds = Aabb()
@@ -52,7 +53,7 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
     }
 
     fun updateTransform() {
-        combinedTransform = transform * (parent?.combinedTransform ?: Matrix4.IDENTITY)
+        combinedTransform = (parent?.combinedTransform ?: Matrix4.IDENTITY) * transform
     }
 
     fun updateBounds() {
@@ -61,5 +62,5 @@ open class Node(var transform: Matrix4 = Matrix4.IDENTITY, private val geometry:
         geometry?.apply { combinedBounds.aggregate(this.bounds, combinedTransform) }
     }
 
-    fun isContainedBy(container: Frustum) = container.contains(combinedBounds)
+    fun isContainedBy(container: Frustum) = container.test(combinedBounds)
 }

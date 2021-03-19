@@ -1,13 +1,14 @@
 package com.zynaps.graphics
 
 import com.zynaps.math.Matrix4
-import com.zynaps.math.Scalar.ceil
-import com.zynaps.math.Scalar.min
 import com.zynaps.math.Vector3
 import java.awt.Color
 import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
+import kotlin.math.ceil
+import kotlin.math.min
 
+@Suppress("unused", "HasPlatformType")
 class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
     private val depthBuffer = FloatArray(bitmap.width * bitmap.height)
     private val shadowBuffer = FloatArray(shadowSize * shadowSize)
@@ -37,19 +38,19 @@ class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
     var background = Color.BLACK
 
     fun render(scene: Scene, camera: Camera) {
-        val orthographic = Matrix4.createOrthographic(-10F, 10F, -10F, 10F, 0F, 30F)
+        val orthographic = Matrix4.createOrthographic(-10F, 10F, -10F, 10F, 1F, 30F)
 
         ForkJoinPool.commonPool().invokeAll(
             listOf(
                 Executors.callable {
-                    shadowFrustum.extractPlanes(lightCamera.viewMatrix, orthographic)
+                    shadowFrustum.configure(lightCamera.viewMatrix, orthographic)
                     shadowRasterizer.clear(0)
                     shadowRasterizer.view = lightCamera.viewMatrix
                     shadowRasterizer.proj = orthographic
                     scene.render(shadowFrustum, shadowRasterizer)
                 },
                 Executors.callable {
-                    frustum.extractPlanes(camera.viewMatrix, camera.projectionMatrix)
+                    frustum.configure(camera.viewMatrix, camera.projectionMatrix)
                     rasterizer.clear(background.rgb)
                     rasterizer.view = camera.viewMatrix
                     rasterizer.proj = camera.projectionMatrix
@@ -61,13 +62,13 @@ class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
     }
 
     private fun postProcess(cameraView: Matrix4, cameraProj: Matrix4, lightView: Matrix4, lightProj: Matrix4) {
-        val combined = Matrix4.invert(cameraView * cameraProj) * lightView * lightProj
-        val twoOverWidth = 2.0F / bitmap.width
-        val twoOverHeight = 2.0F / bitmap.height
+        val combined = lightProj * lightView * Matrix4.invert(cameraProj * cameraView)
+        val twoOverWidth = 2F / bitmap.width
+        val twoOverHeight = 2F / bitmap.height
         val halfShadowSize = shadowSize shr 1
         val shadowSize1 = shadowSize - 1
-        val size = ceil(bitmap.height.toFloat() / CPUS)
-        ForkJoinPool.commonPool().invokeAll((0 until bitmap.height step size).mapIndexed { index, it ->
+        val size = ceil(bitmap.height.toFloat() / CPUS).toInt()
+        ForkJoinPool.commonPool().invokeAll((0 until bitmap.height step size).mapIndexed { _, it ->
             Executors.callable {
                 for (y in it until it + min(size, bitmap.height - it)) {
                     val sy = 1 - y * twoOverHeight
@@ -78,10 +79,10 @@ class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
                             val sx = x * twoOverWidth - 1F
                             val sz = 2F * z - 1F
 
-                            val tw = (combined.m03 * sx + combined.m13 * sy + combined.m23 * sz + combined.m33)
-                            val tx = (combined.m00 * sx + combined.m10 * sy + combined.m20 * sz + combined.m30) / tw
-                            val ty = (combined.m01 * sx + combined.m11 * sy + combined.m21 * sz + combined.m31) / tw
-                            val tz = (combined.m02 * sx + combined.m12 * sy + combined.m22 * sz + combined.m32) / tw
+                            val tw = (combined.m30 * sx + combined.m31 * sy + combined.m32 * sz + combined.m33)
+                            val tx = (combined.m00 * sx + combined.m01 * sy + combined.m02 * sz + combined.m03) / tw
+                            val ty = (combined.m10 * sx + combined.m11 * sy + combined.m12 * sz + combined.m13) / tw
+                            val tz = (combined.m20 * sx + combined.m21 * sy + combined.m22 * sz + combined.m23) / tw
 
                             val nx = (1 + tx) * halfShadowSize
                             val ny = (1 - ty) * halfShadowSize

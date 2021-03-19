@@ -1,9 +1,8 @@
 package com.zynaps.math
 
-import com.zynaps.math.Scalar.max
-import com.zynaps.math.Scalar.min
-import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 data class Vector3(val x: Float, val y: Float, val z: Float) {
@@ -26,15 +25,7 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
 
     operator fun times(v: Vector3) = Vector3(x * v.x, y * v.y, z * v.z)
 
-    operator fun times(m: Matrix4) = Vector3(
-        x * m.m00 + y * m.m10 + z * m.m20 + m.m30,
-        x * m.m01 + y * m.m11 + z * m.m21 + m.m31,
-        x * m.m02 + y * m.m12 + z * m.m22 + m.m32
-    )
-
     companion object {
-        private val RND = ThreadLocalRandom.current()
-
         val ONE = Vector3(1F, 1F, 1F)
         val ZERO = Vector3(0F, 0F, 0F)
 
@@ -54,14 +45,6 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
 
         fun cross(a: Vector3, b: Vector3) = Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 
-        fun normalize(v: Vector3) = v * Scalar.invSqrt(dot(v, v))
-
-        fun random() = normalize(Vector3(RND.nextFloat() * 2 - 1, RND.nextFloat() * 2 - 1, RND.nextFloat() * 2 - 1))
-
-        fun transformNormal(v: Vector3, m: Matrix4) = Vector3(
-            v.x * m.m00 + v.y * m.m10 + v.z * m.m20,
-            v.x * m.m01 + v.y * m.m11 + v.z * m.m21,
-            v.x * m.m02 + v.y * m.m12 + v.z * m.m22
-        )
+        fun normalize(v: Vector3) = v / sqrt(dot(v, v))
     }
 }

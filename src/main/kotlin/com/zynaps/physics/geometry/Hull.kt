@@ -2,19 +2,21 @@ package com.zynaps.physics.geometry
 
 import com.zynaps.math.Matrix4
 import com.zynaps.math.Vector3
-import com.zynaps.math.Vector3.Companion.dot
 import com.zynaps.physics.Settings
 import kotlin.math.pow
 
 class Hull(private val points: Array<Vector3>, scale: Float = 1F) : Shape() {
     private val scale = scale + Settings.COLLISION_TOLERANCE
+    private var transpose = Matrix4.IDENTITY
+
     override var origin = Vector3.ZERO
     override var basis = Matrix4.IDENTITY
+        set(value) {
+            field = value * scale
+            transpose = Matrix4.transpose(value)
+        }
 
-    override fun getSupport(direction: Vector3): Vector3 {
-        val v = Vector3.normalize(basis * direction)
-        return origin + localGetSupporting(v) * basis
-    }
+    override fun getSupport(direction: Vector3) = basis * localGetSupporting(Vector3.normalize(transpose * direction)) + origin
 
     override fun calculateBodyInertia(mass: Float): Matrix4 {
         var minX = Float.POSITIVE_INFINITY
@@ -49,12 +51,12 @@ class Hull(private val points: Array<Vector3>, scale: Float = 1F) : Shape() {
         var out = Vector3.ZERO
         var dist = Float.NEGATIVE_INFINITY
         for (p in points) {
-            val dot = dot(v, p)
+            val dot = Vector3.dot(v, p)
             if (dot > dist) {
                 dist = dot
                 out = p
             }
         }
-        return out * scale
+        return out
     }
 }
