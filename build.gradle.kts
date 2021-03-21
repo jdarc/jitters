@@ -13,7 +13,12 @@ application {
     mainClass.set("Program")
 }
 
+dependencies {
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+}
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "11"
+    useIR = true
 }

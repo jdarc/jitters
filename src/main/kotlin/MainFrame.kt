@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2021 Jean d'Arc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 import com.zynaps.graphics.*
 import com.zynaps.physics.PhysicsLoop
 import com.zynaps.physics.dynamics.Simulation
@@ -35,6 +54,15 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
 
         var toggle = false
 
+        val scene = Scene()
+        val simulation = Simulation()
+
+        val scenery = Scenery(scene, simulation)
+        scenery.addGround()
+        scenery.addModels { toggle }
+
+        val throwSomething = { scenery.addRandomModel(camera.eye, camera.center) { toggle } }
+
         val mask = AWTEvent.MOUSE_MOTION_EVENT_MASK + AWTEvent.MOUSE_EVENT_MASK + AWTEvent.KEY_EVENT_MASK
         Toolkit.getDefaultToolkit().addAWTEventListener(fun(it: AWTEvent) {
             when (it) {
@@ -48,6 +76,7 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
                         KeyEvent.KEY_PRESSED -> {
                             if (it.keyCode == KeyEvent.VK_ESCAPE) exitProcess(0)
                             if (it.keyCode == KeyEvent.VK_SPACE) toggle = !toggle
+                            if (it.keyCode == KeyEvent.VK_PERIOD) throwSomething()
                             control.keyDown(it.keyCode)
                         }
                         KeyEvent.KEY_RELEASED -> control.keyUp(it.keyCode)
@@ -55,13 +84,6 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
                 }
             }
         }, mask)
-
-        val scene = Scene()
-        val simulation = Simulation()
-
-        val scenery = Scenery(scene, simulation)
-        scenery.addGround()
-        scenery.addModels { toggle }
 
         PhysicsLoop(simulation).start()
 

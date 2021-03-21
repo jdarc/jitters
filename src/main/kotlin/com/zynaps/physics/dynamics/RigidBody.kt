@@ -1,16 +1,33 @@
+/*
+ * Copyright (c) 2021 Jean d'Arc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package com.zynaps.physics.dynamics
 
 import com.zynaps.math.Matrix4
 import com.zynaps.math.Vector3
 import com.zynaps.physics.Settings
 import com.zynaps.physics.geometry.Shape
-import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.sin
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class RigidBody(val skin: Shape) {
-    val id = UID++
+    val id = ID++
 
     private var bodyInertia = Matrix4.IDENTITY
     private var bodyInvInertia = Matrix4.IDENTITY
@@ -96,11 +113,6 @@ class RigidBody(val skin: Shape) {
 
     var worldInvInertia = Matrix4.IDENTITY
         private set
-
-    init {
-        mass = 1F
-        moveTo(Vector3.ZERO, Matrix4.IDENTITY)
-    }
 
     fun copyState() = oldState.copy(newState)
 
@@ -198,18 +210,11 @@ class RigidBody(val skin: Shape) {
             val angMomBefore = worldInertia * newState.angularVelocity
 
             newState.position += newState.linearVelocity * dt
-            newState.orientation = addAngularVelocityToOrientation(newState.angularVelocity, newState.orientation, dt)
+            newState.orientation = computeAngularTransform(newState.angularVelocity, dt) * newState.orientation
 
-            // invOrientation = Matrix.Transpose(transform.Orientation);
             invOrientation = Matrix4.transpose(newState.orientation)
-
-            // worldInvInertia = transform.Orientation * bodyInvInertia * invOrientation;
-            worldInvInertia = bodyInvInertia * newState.orientation * invOrientation
-
-            // worldInertia = transform.Orientation * bodyInertia * invOrientation;
+            worldInvInertia = newState.orientation * bodyInvInertia * invOrientation
             worldInertia = newState.orientation * bodyInertia * invOrientation
-
-            // angularVelocity = Vector3.Transform(angMomBefore, worldInvInertia);
             angularVelocity = worldInvInertia * angMomBefore
         }
         skin.origin = position
@@ -235,32 +240,10 @@ class RigidBody(val skin: Shape) {
         worldInvInertia = bodyInvInertia * newState.orientation * invOrientation
     }
 
-    private fun addAngularVelocityToOrientation(angularVelocity: Vector3, orientation: Matrix4, dt: Float): Matrix4 {
+    private fun computeAngularTransform(angularVelocity: Vector3, dt: Float): Matrix4 {
         val ang = angularVelocity.length
-        if (ang <= Settings.TINY) return orientation
-        val dir = angularVelocity / ang
-        val cos = cos(-ang * dt)
-        val sin = sin(-ang * dt)
-        val t = 1F - cos
-        val r0 = cos + dir.x * dir.x * t
-        val r5 = cos + dir.y * dir.y * t
-        val ra = cos + dir.z * dir.z * t
-        val r4 = dir.x * dir.y * t + dir.z * sin
-        val r1 = dir.x * dir.y * t - dir.z * sin
-        val r8 = dir.x * dir.z * t - dir.y * sin
-        val r2 = dir.x * dir.z * t + dir.y * sin
-        val r9 = dir.y * dir.z * t + dir.x * sin
-        val r6 = dir.y * dir.z * t - dir.x * sin
-        val m11 = r0 * orientation.m00 + r4 * orientation.m10 + r8 * orientation.m20
-        val m12 = r1 * orientation.m00 + r5 * orientation.m10 + r9 * orientation.m20
-        val m13 = r2 * orientation.m00 + r6 * orientation.m10 + ra * orientation.m20
-        val m21 = r0 * orientation.m01 + r4 * orientation.m11 + r8 * orientation.m21
-        val m22 = r1 * orientation.m01 + r5 * orientation.m11 + r9 * orientation.m21
-        val m23 = r2 * orientation.m01 + r6 * orientation.m11 + ra * orientation.m21
-        val m31 = r0 * orientation.m02 + r4 * orientation.m12 + r8 * orientation.m22
-        val m32 = r1 * orientation.m02 + r5 * orientation.m12 + r9 * orientation.m22
-        val m33 = r2 * orientation.m02 + r6 * orientation.m12 + ra * orientation.m22
-        return Matrix4(m11, m12, m13, 0F, m21, m22, m23, 0F, m31, m32, m33, 0F, 0F, 0F, 0F, 1F)
+        if (ang < Settings.TINY) return orientation
+        return Matrix4.orthonormalise(Matrix4.createFromAxisAngle(angularVelocity, ang * dt))
     }
 
     init {
@@ -268,7 +251,7 @@ class RigidBody(val skin: Shape) {
     }
 
     private companion object {
-        var UID = 0
+        var ID = 0
 
         class PhysicsState {
             var position = Vector3.ZERO

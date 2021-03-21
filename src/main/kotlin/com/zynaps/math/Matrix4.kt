@@ -1,5 +1,25 @@
+/*
+ * Copyright (c) 2021 Jean d'Arc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package com.zynaps.math
 
+import com.zynaps.physics.Settings
 import kotlin.math.*
 
 data class Matrix4(
@@ -87,6 +107,18 @@ data class Matrix4(
             matrix.m30, matrix.m31, matrix.m32, matrix.m33
         )
 
+        fun orthonormalise(matrix: Matrix4): Matrix4 {
+            val  u1 = Vector3(matrix.m00, matrix.m10, matrix.m20)
+            val  u2 = Vector3(matrix.m01, matrix.m11, matrix.m21)
+            val  u3 = Vector3(matrix.m02, matrix.m12, matrix.m22)
+            val w1 = Vector3.normalize(u1)
+            val w2 = Vector3.normalize(u2 - proj(w1, u2))
+            val w3 = Vector3.normalize(u3 - proj(w1, u3) - proj(w2, u3))
+            return Matrix4(w1.x, w1.y, w1.z, 0F, w2.x, w2.y, w2.z, 0F, w3.x, w3.y, w3.z, 0F, 0F, 0F, 0F, 1F)
+        }
+
+        private fun proj(v1: Vector3, v2: Vector3) = v1 * (Vector3.dot(v1, v2) / v1.lengthSquared)
+
         fun invert(matrix: Matrix4): Matrix4 {
             val b00 = matrix.m00 * matrix.m11 - matrix.m10 * matrix.m01
             val b01 = matrix.m00 * matrix.m21 - matrix.m20 * matrix.m01
@@ -134,7 +166,7 @@ data class Matrix4(
         fun createFromAxisAngle(axis: Vector3, radians: Float) = createFromAxisAngle(axis.x, axis.y, axis.z, radians)
         fun createFromAxisAngle(x: Float, y: Float, z: Float, radians: Float): Matrix4 {
             val magnitude = sqrt(x * x + y * y + z * z)
-            if (magnitude < 0.00001F) throw RuntimeException("create from axis and angle failed, vector length too small")
+            if (magnitude < Settings.TINY) throw RuntimeException("create from axis and angle failed, vector length too small")
             val ax = x / magnitude
             val ay = y / magnitude
             val az = z / magnitude
