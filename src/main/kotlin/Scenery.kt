@@ -17,13 +17,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import com.bulletphysics.convexhull.ConvexHull
+import com.bulletphysics.convexhull.Point3D
 import com.zynaps.graphics.*
 import com.zynaps.math.Matrix4
 import com.zynaps.math.Vector3
 import com.zynaps.physics.dynamics.RigidBody
 import com.zynaps.physics.dynamics.Simulation
 import com.zynaps.physics.geometry.Hull
-import com.zynaps.quickhull3d.QuickHull3D
 import java.util.concurrent.ThreadLocalRandom
 
 class Scenery(private val scene: Scene, private val simulation: Simulation) {
@@ -88,11 +89,10 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         }
 
         fun computeHull(model: Model): Model {
-            val quickHull = QuickHull3D()
-            val hull = quickHull.build(model.extractPoints().fold(DoubleArray(0), { acc, cur -> acc + doubleArrayOf(cur.x.toDouble(), cur.y.toDouble(), cur.z.toDouble()) }))
+            val result = ConvexHull().build(model.extractPoints().map { Point3D(it.x, it.y, it.z) })
             val assembler = Assembler()
-            hull.vertices.forEach { (x, y, z) -> assembler.addVertex(x.toFloat(), y.toFloat(), z.toFloat()) }
-            hull.polygons.forEach { for (i in 1 until it.size - 1) assembler.createTriangle(it[0], it[i], it[i + 1]) }
+            result.vertices.forEach { assembler.addVertex(it.x, it.y, it.z) }
+            result.indices.toList().windowed(3, 3).forEach { assembler.createTriangle(it[0], it[1], it[2]) }
             assembler.withNormalType(NormalType.SURFACE)
             assembler.withMaterial(ColorMaterial(0x0088FF))
             return assembler.compile()

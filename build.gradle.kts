@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    java
     kotlin("jvm") version "1.4.31"
     application
 }
@@ -14,7 +15,10 @@ application {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.31")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
 }
 
 val compileKotlin: KotlinCompile by tasks
