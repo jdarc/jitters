@@ -1,4 +1,4 @@
-package com.bulletphysics.convexhull
+package com.zynaps.tools.convexhull
 
 internal open class Int3(var x: Int = 0, var y: Int = 0, var z: Int = 0) {
 

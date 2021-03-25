@@ -17,28 +17,21 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.physics
+package com.zynaps.physics.collision.broadphase
 
-import com.zynaps.physics.dynamics.Simulation
+import com.zynaps.physics.RigidBody
+import com.zynaps.physics.collision.BroadPhase
 
-class PhysicsLoop(private val simulation: Simulation) {
-    private var active = false
-
-    fun start() {
-        if (active) return
-        Thread {
-            active = true
-            var tock = System.nanoTime()
-            while (active) {
-                val tick = tock
-                tock = System.nanoTime()
-                simulation.integrate((tock - tick) / 1000000000.0F)
-                Thread.sleep(1)
+class BruteForce : BroadPhase {
+    override fun collect(bodies: Set<RigidBody>): Set<Pair<RigidBody, RigidBody>> {
+        val candidates = mutableSetOf<Pair<RigidBody, RigidBody>>()
+        for (body0 in bodies.iterator()) {
+            for (body1 in bodies.iterator()) {
+                if ((!body1.isActive || body0.id < body1.id) && body0.hitTest(body1)) {
+                    candidates.add(body0 to body1)
+                }
             }
-        }.start()
-    }
-
-    fun stop() {
-        active = false
+        }
+        return candidates
     }
 }

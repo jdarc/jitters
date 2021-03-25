@@ -1,15 +1,15 @@
-package com.bulletphysics.convexhull
+package com.zynaps.tools.convexhull
 
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Suppress("DuplicatedCode")
-class ConvexHull {
+class HullMaker {
     private val vertexIndexMapping = mutableListOf<Int>()
     private val tris = mutableListOf<Tri?>()
 
-    fun build(points: List<Point3D>, maxPoints: Int = 4096, normalEpsilon: Float = 0.001f): HullResult {
+    fun build(points: List<Point3D>, maxPoints: Int = 4096, normalEpsilon: Double = 0.001): HullResult {
         val vcount = points.size.coerceAtLeast(8)
         val vertexSource = List(vcount) { Vec3() }.toMutableList()
         val scale = Vec3()
@@ -83,14 +83,14 @@ class ConvexHull {
         }
     }
 
-    private fun extrudable(epsilon: Float): Tri? {
+    private fun extrudable(epsilon: Double): Tri? {
         var t: Tri? = null
         for (tri in tris) {
             if (t == null || tri != null && t.rise < tri.rise) {
                 t = tri
             }
         }
-        return if (t?.rise ?: Float.NEGATIVE_INFINITY > epsilon) t else null
+        return if (t?.rise ?: Double.NEGATIVE_INFINITY > epsilon) t else null
     }
 
     private fun calcHull(vertices: MutableList<Vec3>, numVertices: Int, trisOut: MutableList<Int>, numTris: IntArray, vLimit: Int): Int {
@@ -126,14 +126,14 @@ class ConvexHull {
             Vec3.setMax(bmax, vertices[j])
         }
         tmp.sub(bmax, bmin)
-        val epsilon = tmp.length() * 0.001f
-        assert(epsilon != 0f)
+        val epsilon = tmp.length() * 0.001
+        assert(epsilon != 0.0)
         val p = findSimplex(vertices, numVertices, allow, Int4())
         // a valid interior point
         if (p.x == -1) return 0 // simplex failed
         val center = Vec3()
         Vec3.add(center, vertices[p[0]], vertices[p[1]], vertices[p[2]], vertices[p[3]])
-        center.scale(0.25f)
+        center.scale(0.25)
         val t0 = allocateTriangle(p[2], p[3], p[1])
         t0.n.set(2, 3, 1)
         val t1 = allocateTriangle(p[3], p[2], p[0])
@@ -170,7 +170,7 @@ class ConvexHull {
             while (j-- != 0) {
                 if (tris[j] == null) continue
                 val t = tris[j]!!
-                if (above(vertices, t, vertices[v], 0.01f * epsilon)) extrude(tris[j]!!, v)
+                if (above(vertices, t, vertices[v], 0.01 * epsilon)) extrude(tris[j]!!, v)
             }
             j = tris.size
             while (j-- != 0) {
@@ -180,7 +180,7 @@ class ConvexHull {
                 tmp1.sub(vertices[nt!![1]], vertices[nt[0]])
                 tmp2.sub(vertices[nt[2]], vertices[nt[1]])
                 tmp.cross(tmp1, tmp2)
-                if (above(vertices, nt, center, 0.01f * epsilon) || tmp.length() < epsilon * epsilon * 0.1f) {
+                if (above(vertices, nt, center, 0.01 * epsilon) || tmp.length() < epsilon * epsilon * 0.1) {
                     val nb = tris[tris[j]!!.n[0]]!!
                     assert(!hasVert(nb, v))
                     assert(nb.id < j)
@@ -210,17 +210,17 @@ class ConvexHull {
         val tmp1 = Vec3()
         val tmp2 = Vec3()
         val basis = arrayOf(Vec3(), Vec3(), Vec3())
-        basis[0].set(0.01f, 0.02f, 1.0f)
+        basis[0].set(0.01, 0.02, 1.0)
         val p0 = maxDirSterId(vertices, numVertices, basis[0], allow)
         tmp.negate(basis[0])
         val p1 = maxDirSterId(vertices, numVertices, tmp, allow)
         basis[0].sub(vertices[p0], vertices[p1])
-        if (p0 == p1 || basis[0].x == 0f && basis[0].y == 0f && basis[0].z == 0f) {
+        if (p0 == p1 || basis[0].x == 0.0 && basis[0].y == 0.0 && basis[0].z == 0.0) {
             out.set(-1, -1, -1, -1)
             return out
         }
-        basis[1].cross(tmp.set(1f, 0.02f, 0f), basis[0])
-        basis[2].cross(tmp.set(-0.02f, 1f, 0f), basis[0])
+        basis[1].cross(tmp.set(1.0, 0.02, 0.0), basis[0])
+        basis[2].cross(tmp.set(-0.02, 1.0, 0.0), basis[0])
         if (basis[1].length() > basis[2].length()) basis[1].normalize() else {
             basis[1].set(basis[2]).normalize()
         }
@@ -300,14 +300,14 @@ class ConvexHull {
         }
     }
 
-    private fun cleanupVertices(svcount: Int, svertices: List<Vec3>, vcount: IntArray, vertices: List<Vec3>, normalEpsilon: Float, scale: Vec3): Boolean {
+    private fun cleanupVertices(svcount: Int, svertices: List<Vec3>, vcount: IntArray, vertices: List<Vec3>, normalEpsilon: Double, scale: Vec3): Boolean {
         if (svcount == 0) return false
         vertexIndexMapping.clear()
         vcount[0] = 0
-        val recip = FloatArray(3)
-        scale.set(1f, 1f, 1f)
-        var bmin = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE)
-        var bmax = floatArrayOf(-3.4028235E38f, -3.4028235E38f, -3.4028235E38f)
+        val recip = DoubleArray(3)
+        scale.set(1.0, 1.0, 1.0)
+        var bmin = doubleArrayOf(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE)
+        var bmax = doubleArrayOf(-3.4028235E38, -3.4028235E38, -3.4028235E38)
         var vtxPtr = svertices
         var vtxIdx = 0
         for (i in 0 until svcount) {
@@ -320,20 +320,20 @@ class ConvexHull {
         var dx = bmax[0] - bmin[0]
         var dy = bmax[1] - bmin[1]
         var dz = bmax[2] - bmin[2]
-        val center = Vec3(dx * 0.5f + bmin[0], dy * 0.5f + bmin[1], dz * 0.5f + bmin[2])
+        val center = Vec3(dx * 0.5 + bmin[0], dy * 0.5 + bmin[1], dz * 0.5 + bmin[2])
         if (dx < EPSILON || dy < EPSILON || dz < EPSILON || svcount < 3) {
-            var len = Float.MAX_VALUE
+            var len = Double.MAX_VALUE
             if (dx > EPSILON && dx < len) len = dx
             if (dy > EPSILON && dy < len) len = dy
             if (dz > EPSILON && dz < len) len = dz
-            if (len == Float.MAX_VALUE) {
-                dz = 0.01f
+            if (len == Double.MAX_VALUE) {
+                dz = 0.01
                 dy = dz
                 dx = dy
             } else {
-                if (dx < EPSILON) dx = len * 0.05f
-                if (dy < EPSILON) dy = len * 0.05f
-                if (dz < EPSILON) dz = len * 0.05f
+                if (dx < EPSILON) dx = len * 0.05
+                if (dy < EPSILON) dy = len * 0.05
+                if (dz < EPSILON) dz = len * 0.05
             }
             val x1 = center.x - dx
             val x2 = center.x + dx
@@ -354,9 +354,9 @@ class ConvexHull {
             scale.x = dx
             scale.y = dy
             scale.z = dz
-            recip[0] = 1f / dx
-            recip[1] = 1f / dy
-            recip[2] = 1f / dz
+            recip[0] = 1.0 / dx
+            recip[1] = 1.0 / dy
+            recip[2] = 1.0 / dz
             center.x *= recip[0]
             center.y *= recip[1]
             center.z *= recip[2]
@@ -400,8 +400,8 @@ class ConvexHull {
             vertexIndexMapping.add(j)
         }
 
-        bmin = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE)
-        bmax = floatArrayOf(-3.4028235E38f, -3.4028235E38f, -3.4028235E38f)
+        bmin = doubleArrayOf(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE)
+        bmax = doubleArrayOf(-3.4028235E38, -3.4028235E38, -3.4028235E38)
         for (i in 0 until vcount[0]) {
             val p = vertices[i]
             for (j in 0..2) {
@@ -413,21 +413,21 @@ class ConvexHull {
         dy = bmax[1] - bmin[1]
         dz = bmax[2] - bmin[2]
         if (dx < EPSILON || dy < EPSILON || dz < EPSILON || vcount[0] < 3) {
-            val cx = dx * 0.5f + bmin[0]
-            val cy = dy * 0.5f + bmin[1]
-            val cz = dz * 0.5f + bmin[2]
-            var len = Float.MAX_VALUE
+            val cx = dx * 0.5 + bmin[0]
+            val cy = dy * 0.5 + bmin[1]
+            val cz = dz * 0.5 + bmin[2]
+            var len = Double.MAX_VALUE
             if (dx >= EPSILON && dx < len) len = dx
             if (dy >= EPSILON && dy < len) len = dy
             if (dz >= EPSILON && dz < len) len = dz
-            if (len == Float.MAX_VALUE) {
-                dz = 0.01f
+            if (len == Double.MAX_VALUE) {
+                dz = 0.01
                 dy = dz
                 dx = dy
             } else {
-                if (dx < EPSILON) dx = len * 0.05f
-                if (dy < EPSILON) dy = len * 0.05f
-                if (dz < EPSILON) dz = len * 0.05f
+                if (dx < EPSILON) dx = len * 0.05
+                if (dy < EPSILON) dy = len * 0.05
+                if (dz < EPSILON) dz = len * 0.05
             }
             val x1 = cx - dx
             val x2 = cx + dx
@@ -450,14 +450,14 @@ class ConvexHull {
     }
 
     companion object {
-        private const val SIMD_RADS_PER_DEG = 0.01745329252f
-        private const val EPSILON = 0.000001f
+        private const val RADS_PER_DEG = 0.017453292519943295
+        private const val EPSILON = 0.00000001
 
         private fun hasVert(t: Int3, v: Int) = t[0] == v || t[1] == v || t[2] == v
 
         private fun orthonormalize(v: Vec3, out: Vec3): Vec3 {
-            val a = Vec3().cross(v, Vec3(0f, 0f, 1f))
-            val b = Vec3().cross(v, Vec3(0f, 1f, 0f))
+            val a = Vec3().cross(v, Vec3(0.0, 0.0, 1.0))
+            val b = Vec3().cross(v, Vec3(0.0, 1.0, 0.0))
             return if (a.length() > b.length()) {
                 out.normalize(a)
                 out
@@ -489,11 +489,11 @@ class ConvexHull {
                 orthonormalize(dir, u)
                 v.cross(u, dir)
                 var ma = -1
-                var x = 0f
-                while (x <= 360f) {
-                    var s = sin(SIMD_RADS_PER_DEG * x)
-                    var c = cos(SIMD_RADS_PER_DEG * x)
-                    tmp.add(tmp1.scale(s, u), tmp2.scale(c, v)).scale(0.025f).add(dir)
+                var x = 0.0
+                while (x <= 360.0) {
+                    var s = sin(RADS_PER_DEG * x)
+                    var c = cos(RADS_PER_DEG * x)
+                    tmp.add(tmp1.scale(s, u), tmp2.scale(c, v)).scale(0.025).add(dir)
                     val mb = maxDirFiltered(p, count, tmp, allow)
                     if (ma == m && mb == m) {
                         allow[m] = 3
@@ -501,22 +501,22 @@ class ConvexHull {
                     }
                     if (ma != -1 && ma != mb) {
                         var mc = ma
-                        var xx = x - 40f
+                        var xx = x - 40.0
                         while (xx <= x) {
-                            s = sin(SIMD_RADS_PER_DEG * xx)
-                            c = cos(SIMD_RADS_PER_DEG * xx)
-                            tmp.add(tmp1.scale(s, u), tmp2.scale(c, v)).scale(0.025f).add(dir)
+                            s = sin(RADS_PER_DEG * xx)
+                            c = cos(RADS_PER_DEG * xx)
+                            tmp.add(tmp1.scale(s, u), tmp2.scale(c, v)).scale(0.025).add(dir)
                             val md = maxDirFiltered(p, count, tmp, allow)
                             if (mc == m && md == m) {
                                 allow[m] = 3
                                 return m
                             }
                             mc = md
-                            xx += 5f
+                            xx += 5.0
                         }
                     }
                     ma = mb
-                    x += 45f
+                    x += 45.0
                 }
                 allow[m] = 0
             }
@@ -527,22 +527,22 @@ class ConvexHull {
             val tmp2 = Vec3().sub(v2, v1)
             val cp = Vec3().cross(tmp1, tmp2)
             val m = cp.length()
-            return if (m == 0f) out.set(1f, 0f, 0f) else out.scale(1f / m, cp)
+            return if (m == 0.0) out.set(1.0, 0.0, 0.0) else out.scale(1.0 / m, cp)
         }
 
-        private fun above(vertices: List<Vec3>, t: Int3, p: Vec3, epsilon: Float): Boolean {
+        private fun above(vertices: List<Vec3>, t: Int3, p: Vec3, epsilon: Double): Boolean {
             val n = triNormal(vertices[t[0]], vertices[t[1]], vertices[t[2]], Vec3())
             return n.dot(Vec3().sub(p, vertices[t[0]])) > epsilon
         }
 
-        private fun addPoint(vcount: IntArray, p: List<Vec3>, x: Float, y: Float, z: Float) {
+        private fun addPoint(vcount: IntArray, p: List<Vec3>, x: Double, y: Double, z: Double) {
             val dest = p[vcount[0]++]
             dest.x = x
             dest.y = y
             dest.z = z
         }
 
-        private fun getDist(px: Float, py: Float, pz: Float, p2: Vec3): Float {
+        private fun getDist(px: Double, py: Double, pz: Double, p2: Vec3): Double {
             val dx = px - p2.x
             val dy = py - p2.y
             val dz = pz - p2.z

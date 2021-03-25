@@ -17,12 +17,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.zynaps.graphics.Node
-import com.zynaps.math.Matrix4
+package com.zynaps.physics.collision
+
 import com.zynaps.physics.RigidBody
 
-class PhysicsNode(private val body: RigidBody) : Node() {
-    override fun update(seconds: Float) {
-        transform = Matrix4.createTranslation(body.position) * body.orientation
-    }
+interface BroadPhase {
+    fun collect(bodies: Set<RigidBody>): Set<Pair<RigidBody, RigidBody>>
 }

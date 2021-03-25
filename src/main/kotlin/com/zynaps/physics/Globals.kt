@@ -17,12 +17,13 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.zynaps.graphics.Node
-import com.zynaps.math.Matrix4
-import com.zynaps.physics.RigidBody
+package com.zynaps.physics
 
-class PhysicsNode(private val body: RigidBody) : Node() {
-    override fun update(seconds: Float) {
-        transform = Matrix4.createTranslation(body.position) * body.orientation
-    }
+object Globals {
+    const val ALLOWED_PENETRATION = 0.01F
+    const val COLLISION_TOLERANCE = 0.01F
+    const val COLLISION_ITERATIONS = 4
+    const val CONTACT_ITERATIONS = 12
+    const val TINY = 0.00001F
+    const val HUGE = 100000F
 }

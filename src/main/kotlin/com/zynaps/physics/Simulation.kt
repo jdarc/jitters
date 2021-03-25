@@ -17,32 +17,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.physics.dynamics
+package com.zynaps.physics
 
 import com.zynaps.math.Vector3
-import com.zynaps.physics.Settings
-import com.zynaps.physics.collision.CollisionListener
-import com.zynaps.physics.collision.CollisionPoints
-import com.zynaps.physics.collision.CollisionSystem
+import com.zynaps.physics.collision.*
 import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class Simulation : CollisionListener {
-    private val collisionSystem = CollisionSystem()
+class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHandler {
+    private val collisionSystem = CollisionSystem(broadPhase, narrowPhase)
     private val collisions = mutableListOf<Collision>()
     private val bodies = mutableSetOf<RigidBody>()
 
     var gravity = Vector3(0F, -9.8F, 0F)
 
     fun addBody(body: RigidBody) {
-        bodies.add(body)
-        collisionSystem.bodies.add(body)
+        bodies += body
+        collisionSystem.bodies += body
     }
 
     fun removeBody(body: RigidBody) {
-        bodies.remove(body)
-        collisionSystem.bodies.remove(body)
+        bodies -= body
+        collisionSystem.bodies -= body
     }
 
     fun removeAllBodies() {
@@ -50,15 +47,14 @@ class Simulation : CollisionListener {
         collisionSystem.bodies.clear()
     }
 
-    override fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, points: Array<CollisionPoints>) {
+    override fun impact(body0: RigidBody, body1: RigidBody, normal: Vector3, points: Array<CollisionPoints>) {
         collisions.add(Collision(body0, body1, normal, points))
     }
 
     fun integrate(dt: Float) {
-        val activeBodies = bodies.filter { it.isActive }
+        val activeBodies = bodies.toTypedArray().filter { it.isActive }
 
         for (body in activeBodies) {
-            body.copyState()
             if (body.applyGravity) body.addWorldForce(gravity * body.mass)
             body.storeState()
             body.updateVelocity(dt)
@@ -70,11 +66,11 @@ class Simulation : CollisionListener {
 
         for (body in activeBodies) body.restoreState()
 
-        processCollisions(collisions, dt, Settings.COLLISION_ITERATIONS, false)
+        processCollisions(collisions, dt, Globals.COLLISION_ITERATIONS, false)
 
         for (body in activeBodies) body.updateVelocity(dt)
 
-        processCollisions(collisions, dt, Settings.CONTACT_ITERATIONS, true)
+        processCollisions(collisions, dt, Globals.CONTACT_ITERATIONS, true)
 
         for (body in activeBodies) {
             body.updatePosition(dt)
@@ -101,7 +97,7 @@ class Simulation : CollisionListener {
     private fun preProcessCollision(collision: Collision, dt: Float) {
         collision.satisfied = false
 
-        val tolerance = 1F / (Settings.TINY + Settings.ALLOWED_PENETRATION)
+        val tolerance = 1F / (Globals.TINY + Globals.ALLOWED_PENETRATION)
         for (points in collision.points) {
             points.denominator = 0F
             if (collision.body0.isMovable) {
@@ -114,15 +110,15 @@ class Simulation : CollisionListener {
                 points.denominator += collision.body1.inverseMass + Vector3.dot(collision.normal, Vector3.cross(v, points.r1))
             }
 
-            val diffPenetration = points.initialPenetration - Settings.ALLOWED_PENETRATION
-            if (points.initialPenetration > Settings.ALLOWED_PENETRATION) {
+            val diffPenetration = points.initialPenetration - Globals.ALLOWED_PENETRATION
+            if (points.initialPenetration > Globals.ALLOWED_PENETRATION) {
                 points.minSeparationVel = diffPenetration / dt
             } else {
                 val approachScale = -0.1F * diffPenetration * tolerance
-                points.minSeparationVel = approachScale.coerceIn(Settings.TINY, 1F) * diffPenetration / max(dt, Settings.TINY)
+                points.minSeparationVel = approachScale.coerceIn(Globals.TINY, 1F) * diffPenetration / max(dt, Globals.TINY)
             }
 
-            points.denominator = max(points.denominator, Settings.TINY)
+            points.denominator = max(points.denominator, Globals.TINY)
             points.minSeparationVel = min(points.minSeparationVel, MAX_VEL_MAG)
         }
     }
@@ -139,7 +135,7 @@ class Simulation : CollisionListener {
             val deltaVel = finalNormalVel - normalVel
             if (deltaVel <= MIN_VEL_FOR_PROCESSING) continue
 
-            if (points.denominator < Settings.TINY) points.denominator = Settings.TINY
+            if (points.denominator < Globals.TINY) points.denominator = Globals.TINY
             val normalImpulse = deltaVel / points.denominator
 
             val impulse = collision.normal * normalImpulse
@@ -150,7 +146,7 @@ class Simulation : CollisionListener {
             vrNew -= collision.body1.velocityRelativeTo(points.r1)
 
             var tangentVel = collision.normal * Vector3.dot(vrNew, collision.normal) - vrNew
-            val tangentSpeed = tangentVel.length
+            val tangentSpeed = tangentVel.length()
             if (tangentSpeed < MIN_VEL_FOR_PROCESSING) continue
             tangentVel /= tangentSpeed
 
@@ -165,7 +161,7 @@ class Simulation : CollisionListener {
                 denominator += collision.body1.inverseMass + Vector3.dot(tangentVel, Vector3.cross(v, points.r1))
             }
 
-            if (denominator < Settings.TINY) continue
+            if (denominator < Globals.TINY) continue
 
             val impulseToReserve = tangentSpeed / denominator
             val i = if (impulseToReserve < collision.friction * normalImpulse) impulseToReserve else collision.friction * normalImpulse

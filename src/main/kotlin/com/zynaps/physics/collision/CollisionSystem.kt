@@ -19,23 +19,21 @@
 
 package com.zynaps.physics.collision
 
-import com.zynaps.physics.Settings
-import com.zynaps.physics.dynamics.RigidBody
+import com.zynaps.physics.Globals
+import com.zynaps.physics.RigidBody
 
-class CollisionSystem {
+@Suppress("MemberVisibilityCanBePrivate")
+class CollisionSystem(val broadPhase: BroadPhase, val narrowPhase: NarrowPhase, val tolerance: Float = Globals.COLLISION_TOLERANCE) {
     val bodies = mutableSetOf<RigidBody>()
 
-    fun detect(listener: CollisionListener) {
-        for (body0 in bodies.filter { it.isActive }) {
-            for (body1 in bodies.filter { !it.isActive || body0.id < it.id }) {
-                if (body0.hitTest(body1)) {
-                    val result = GjkEpaSolver.collide(body0.skin, body1.skin, Settings.COLLISION_TOLERANCE)
-                    if (result.hasCollided) {
-                        val r0 = result.pointA - body0.skin.origin
-                        val r1 = result.pointB - body1.skin.origin
-                        listener.collisionNotify(body0, body1, result.normal, arrayOf(CollisionPoints(r0, r1, result.depth)))
-                    }
-                }
+    fun detect(handler: CollisionHandler) {
+        val candidates = broadPhase.collect(bodies)
+        for ((body0, body1) in candidates) {
+            val results = narrowPhase.test(body0.skin, body1.skin, tolerance)
+            if (results.hasCollided) {
+                val r0 = results.r0 - body0.skin.origin
+                val r1 = results.r1 - body1.skin.origin
+                handler.impact(body0, body1, results.normal, arrayOf(CollisionPoints(r0, r1, results.initialPenetration)))
             }
         }
     }

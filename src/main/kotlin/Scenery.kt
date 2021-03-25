@@ -17,14 +17,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.bulletphysics.convexhull.ConvexHull
-import com.bulletphysics.convexhull.Point3D
 import com.zynaps.graphics.*
 import com.zynaps.math.Matrix4
 import com.zynaps.math.Vector3
-import com.zynaps.physics.dynamics.RigidBody
-import com.zynaps.physics.dynamics.Simulation
-import com.zynaps.physics.geometry.Hull
+import com.zynaps.physics.RigidBody
+import com.zynaps.physics.Simulation
+import com.zynaps.physics.geometry.ConvexHull
+import com.zynaps.tools.convexhull.HullMaker
+import com.zynaps.tools.convexhull.Point3D
 import java.util.concurrent.ThreadLocalRandom
 
 class Scenery(private val scene: Scene, private val simulation: Simulation) {
@@ -33,7 +33,7 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
 
     fun addGround() {
         val plane = createBox(5F, 0.001F, 5F).compile()
-        val body = RigidBody(Hull(plane.extractPoints(), 20F))
+        val body = RigidBody(ConvexHull(plane.extractPoints(), 20F))
         body.isActive = true
         body.isMovable = false
         body.moveTo(Vector3(0F, -1F, 0F), Matrix4.IDENTITY)
@@ -41,11 +41,29 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         scene.root.addNode(PhysicsNode(body).addNode(Node(Matrix4.createScale(20F), plane)))
     }
 
+    fun addStackedBoxes() {
+        val assembler = createBox(1F, 1F, 1F)
+        assembler.withMaterial(CheckerMaterial(0x8B2222, 0xCD3232, 8F))
+        val box = assembler.compile()
+        for (z in -2..3) {
+            for (y in 0..5) {
+                for (x in -2..3) {
+                    val body = RigidBody(ConvexHull(box.extractPoints()))
+                    body.mass = 10F
+                    body.moveTo(Vector3(x * 1.1F, y * 1.1F, z * 1.1F))
+                    simulation.addBody(body)
+                    scene.root.addNode(PhysicsNode(body).addNode(Node(geometry = box)))
+                }
+            }
+        }
+    }
+
     fun addModels(hullToggle: () -> Boolean) {
         for (i in 0..19) {
             val (model, hull, hullPoints) = models[ThreadLocalRandom.current().nextInt(models.size)]
-            val body = RigidBody(Hull(hullPoints, 2F))
-            body.moveTo(random() + Vector3(0F, 1F + i * 3F, 0F), Matrix4.IDENTITY)
+            val body = RigidBody(ConvexHull(hullPoints, 2F))
+            body.mass = 10F
+            body.moveTo(random() + Vector3(0F, 1F + i * 3F, 0F))
             simulation.addBody(body)
             scene.root.addNode(
                 PhysicsNode(body)
@@ -55,13 +73,13 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         }
     }
 
-    fun addRandomModel(from:Vector3, at: Vector3, hullToggle: () -> Boolean) {
+    fun addRandomModel(from: Vector3, at: Vector3, hullToggle: () -> Boolean) {
         val (model, hull, hullPoints) = models[ThreadLocalRandom.current().nextInt(models.size)]
-        val body = RigidBody(Hull(hullPoints, 2F))
-        body.moveTo(from, Matrix4.IDENTITY)
+        val body = RigidBody(ConvexHull(hullPoints, 2F))
+        body.mass = 10F
+        body.moveTo(from)
         body.linearVelocity = (at - from) * 20F
         body.isActive = true
-        body.mass = 1F
         simulation.addBody(body)
         scene.root.addNode(
             PhysicsNode(body)
@@ -77,6 +95,7 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         val bowlingPin = getModelAndHull("bowlingpin.obj")
         models = arrayOf(dino, grunt, triceratops, bowlingPin)
     }
+
     private companion object {
         val RND: ThreadLocalRandom = ThreadLocalRandom.current()
 
@@ -89,9 +108,9 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         }
 
         fun computeHull(model: Model): Model {
-            val result = ConvexHull().build(model.extractPoints().map { Point3D(it.x, it.y, it.z) })
+            val result = HullMaker().build(model.extractPoints().map { (x, y, z) -> Point3D(x.toDouble(), y.toDouble(), z.toDouble()) })
             val assembler = Assembler()
-            result.vertices.forEach { assembler.addVertex(it.x, it.y, it.z) }
+            result.vertices.forEach { (x, y, z) -> assembler.addVertex(x, y, z) }
             result.indices.toList().windowed(3, 3).forEach { assembler.createTriangle(it[0], it[1], it[2]) }
             assembler.withNormalType(NormalType.SURFACE)
             assembler.withMaterial(ColorMaterial(0x0088FF))

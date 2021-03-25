@@ -18,8 +18,9 @@
  */
 
 import com.zynaps.graphics.*
-import com.zynaps.physics.PhysicsLoop
-import com.zynaps.physics.dynamics.Simulation
+import com.zynaps.physics.Simulation
+import com.zynaps.physics.collision.broadphase.BruteForce
+import com.zynaps.physics.collision.narrowphase.GjkEpa
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -55,10 +56,11 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
         var toggle = false
 
         val scene = Scene()
-        val simulation = Simulation()
+        val simulation = Simulation(BruteForce(), GjkEpa())
 
         val scenery = Scenery(scene, simulation)
         scenery.addGround()
+//        scenery.addStackedBoxes()
         scenery.addModels { toggle }
 
         val throwSomething = { scenery.addRandomModel(camera.eye, camera.center) { toggle } }
@@ -97,7 +99,7 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
 
     override fun paint(g: Graphics) {
         g as Graphics2D
-        val scaleOp = AffineTransformOp(AffineTransform.getScaleInstance(2.0, 2.0), AffineTransformOp.TYPE_BILINEAR)
+        val scaleOp = AffineTransformOp(AffineTransform.getScaleInstance(2.0, 2.0), AffineTransformOp.TYPE_NEAREST_NEIGHBOR)
         g.drawImage(bitmap.image, scaleOp, 0, 0)
     }
 }

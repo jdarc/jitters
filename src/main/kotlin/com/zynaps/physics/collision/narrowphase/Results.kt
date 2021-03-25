@@ -17,13 +17,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.physics
+package com.zynaps.physics.collision.narrowphase
 
-object Settings {
-    const val ALLOWED_PENETRATION = 0.01F
-    const val COLLISION_TOLERANCE = 0.01F
-    const val COLLISION_ITERATIONS = 4
-    const val CONTACT_ITERATIONS = 12
-    const val TINY = 0.00001F
-    const val HUGE = 100000F
+import com.zynaps.math.Vector3
+import com.zynaps.physics.collision.ImpactDetails
+
+class Results : ImpactDetails {
+    override var r0 = Vector3.ZERO
+    override var r1 = Vector3.ZERO
+    override var normal = Vector3.ZERO
+    override var initialPenetration = 0F
+    override val hasCollided get() = status == ResultsStatus.PENETRATING
+
+    var status = ResultsStatus.SEPARATED
+    var epaIterations = 0
+    var gjkIterations = 0
+
+    override fun reset() {
+        r0 = Vector3.ZERO
+        r1 = Vector3.ZERO
+        status = ResultsStatus.SEPARATED
+        normal = Vector3.ZERO
+        initialPenetration = 0F
+        gjkIterations = 0
+        epaIterations = 0
+    }
 }

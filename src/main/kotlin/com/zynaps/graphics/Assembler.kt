@@ -21,7 +21,7 @@ package com.zynaps.graphics
 
 import com.zynaps.math.Vector3
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 class Assembler {
     private val positions = mutableListOf<Vector3>()
     private val vertexNormals = mutableListOf<Vector3>()
@@ -29,22 +29,23 @@ class Assembler {
     private var averagedNormals = listOf<Vector3>()
     private val triangles = mutableListOf<DefaultModifier>()
 
+    fun addVertex(x: Float, y: Float, z: Float) { positions.add(Vector3(x, y, z)) }
+    fun addVertex(x: Double, y: Double, z: Double) = addVertex(x.toFloat(), y.toFloat(), z.toFloat())
     fun addVertex(data: FloatArray) = addVertex(data[0], data[1], data[2])
-    fun addVertex(x: Float, y: Float, z: Float) {
-        positions.add(Vector3(x, y, z))
-    }
 
+    fun addNormal(x: Float, y: Float, z: Float) { vertexNormals.add(Vector3.normalize(Vector3(x, y, z))) }
+    fun addNormal(x: Double, y: Double, z: Double) = addNormal(x.toFloat(), y.toFloat(), z.toFloat())
     fun addNormal(data: FloatArray) = addNormal(data[0], data[1], data[2])
-    fun addNormal(x: Float, y: Float, z: Float) {
-        vertexNormals.add(Vector3.normalize(Vector3(x, y, z)))
-    }
 
+    fun addUvCoordinate(u: Float, v: Float) { textureCoordinates.add(Vector3(u, v, 0F)) }
+    fun addUvCoordinate(u: Double, v: Double) = addUvCoordinate(u.toFloat(), v.toFloat())
     fun addUvCoordinate(data: FloatArray) = addUvCoordinate(data[0], data[1])
-    fun addUvCoordinate(u: Float, v: Float) {
-        textureCoordinates.add(Vector3(u, v, 0F))
-    }
 
-    fun createTriangle(a: Int, b: Int, c: Int): TriangleModifier = DefaultModifier(a, b, c).apply { triangles.add(this) }
+    fun createTriangle(a: Int, b: Int, c: Int): TriangleModifier = DefaultModifier(
+        a,
+        b,
+        c
+    ).apply { triangles.add(this) }
 
     fun withNormalType(normalType: NormalType) = triangles.forEach { it.normalType = normalType }
 
@@ -106,7 +107,10 @@ class Assembler {
         fun optimize(vb: List<Vertex>): Mesh {
             val vertices = mutableMapOf<Vertex, Int>()
             val indices = vb.indices.map { vertices.getOrPut(vb[it], { vertices.size }) }
-            return Mesh(toVertexBuffer(vertices.keys.toTypedArray()), indices.toIntArray())
+            return Mesh(
+                toVertexBuffer(vertices.keys.toTypedArray()),
+                indices.toIntArray()
+            )
         }
 
         fun toVertexBuffer(vertices: Array<Vertex>) =

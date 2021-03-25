@@ -1,10 +1,10 @@
-package com.bulletphysics.convexhull
+package com.zynaps.tools.convexhull
 
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-internal data class Vec3(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f) {
+internal data class Vec3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0) {
 
     constructor(v1: Vec3) : this(v1.x, v1.y, v1.z)
 
@@ -15,14 +15,14 @@ internal data class Vec3(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f
         else -> throw IllegalArgumentException()
     }
 
-    fun set(x: Float, y: Float, z: Float): Vec3 {
+    fun set(x: Double, y: Double, z: Double): Vec3 {
         this.x = x
         this.y = y
         this.z = z
         return this
     }
 
-    fun length() = sqrt(dot(this).toDouble()).toFloat()
+    fun length() = sqrt(dot(this))
 
     fun set(v: Vec3) = set(v.x, v.y, v.z)
 
@@ -32,7 +32,7 @@ internal data class Vec3(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f
 
     fun normalize(v: Vec3) = set(v).normalize()
 
-    fun normalize() = scale((1.0 / sqrt((x * x + y * y + z * z).toDouble())).toFloat())
+    fun normalize() = scale(1.0 / sqrt((x * x + y * y + z * z)))
 
     fun add(a: Vec3, v: Vec3) = set(a.x + v.x, a.y + v.y, a.z + v.z)
 
@@ -42,9 +42,9 @@ internal data class Vec3(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f
 
     fun negate(v: Vec3) = set(-v.x, -v.y, -v.z)
 
-    fun scale(s: Float, v: Vec3) = set(v).scale(s)
+    fun scale(s: Double, v: Vec3) = set(v).scale(s)
 
-    fun scale(s: Float) = set(x * s, y * s, z * s)
+    fun scale(s: Double) = set(x * s, y * s, z * s)
 
     companion object {
 

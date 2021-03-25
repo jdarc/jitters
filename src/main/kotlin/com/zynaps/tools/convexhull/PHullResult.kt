@@ -1,4 +1,4 @@
-package com.bulletphysics.convexhull
+package com.zynaps.tools.convexhull
 
 internal class PHullResult {
     var vertices = emptyList<Vec3>()

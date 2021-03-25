@@ -17,12 +17,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.zynaps.graphics.Node
-import com.zynaps.math.Matrix4
+package com.zynaps.physics.collision
+
+import com.zynaps.math.Vector3
 import com.zynaps.physics.RigidBody
 
-class PhysicsNode(private val body: RigidBody) : Node() {
-    override fun update(seconds: Float) {
-        transform = Matrix4.createTranslation(body.position) * body.orientation
-    }
+interface CollisionHandler {
+    fun impact(body0: RigidBody, body1: RigidBody, normal: Vector3, points: Array<CollisionPoints>)
 }

@@ -21,47 +21,12 @@ package com.zynaps.physics.geometry
 
 import com.zynaps.math.Matrix4
 import com.zynaps.math.Vector3
-import com.zynaps.physics.Settings
-import kotlin.math.max
 
-class Hull(private val points: Array<Vector3>, scale: Float = 1F) : Shape() {
-    private val scale = scale + Settings.COLLISION_TOLERANCE
-    private var transpose = Matrix4.IDENTITY
+class Sphere(private val radius: Float) : CollisionSkin() {
 
-    override var origin = Vector3.ZERO
-    override var basis = Matrix4.IDENTITY
-        set(value) {
-            field = value
-            transpose = Matrix4.transpose(value)
-        }
+    override val boundingSphere get() = radius
 
-    override val boundingSphere = calculateBoundingSphere()
-
-    override fun getSupport(direction: Vector3) = basis * localGetSupporting(Vector3.normalize(transpose * direction)) + origin
+    override fun getSupport(direction: Vector3) = origin + direction * (radius / direction.length())
 
     override fun calculateBodyInertia(mass: Float) = Matrix4.createScale(0.4F * mass * boundingSphere * boundingSphere)
-
-    private fun localGetSupporting(v: Vector3): Vector3 {
-        var out = Vector3.ZERO
-        var dist = Float.NEGATIVE_INFINITY
-        for (p in points) {
-            val dot = Vector3.dot(v, p)
-            if (dot > dist) {
-                dist = dot
-                out = p
-            }
-        }
-        return out * scale
-    }
-
-    private fun calculateBoundingSphere(): Float {
-        var min = Vector3.POSITIVE_INFINITY
-        var max = Vector3.NEGATIVE_INFINITY
-        points.forEach {
-            min = Vector3.min(it, min)
-            max = Vector3.max(it, max)
-        }
-        val size = max - min
-        return max(size.x, max(size.y, size.z)) * 0.5F * scale
-    }
 }

@@ -1,4 +1,4 @@
-package com.bulletphysics.convexhull
+package com.zynaps.tools.convexhull
 
 internal interface IntRef {
     fun get(): Int

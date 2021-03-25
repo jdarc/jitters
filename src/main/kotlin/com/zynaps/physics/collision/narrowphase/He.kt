@@ -17,11 +17,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.physics.collision
+package com.zynaps.physics.collision.narrowphase
 
 import com.zynaps.math.Vector3
-import com.zynaps.physics.dynamics.RigidBody
 
-interface CollisionListener {
-    fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, points: Array<CollisionPoints>)
+internal class He {
+    var v = Vector3.ZERO
+    var n: He? = null
 }

@@ -81,8 +81,7 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
 
     private fun fastRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(3, a, b, c, c, c)
 
-    private fun clipRender(a: Vertex, b: Vertex, c: Vertex) =
-        cullFn(clipper.clip(a, b, c), clipper[0], clipper[1], clipper[2], clipper[3], clipper[4])
+    private fun clipRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(clipper.clip(a, b, c), clipper[0], clipper[1], clipper[2], clipper[3], clipper[4])
 
     private fun renderBack(delta: Int, a: Vertex, b: Vertex, c: Vertex, d: Vertex, e: Vertex) = when (delta) {
         3 -> renderFront(delta, c, b, a, a, a)
@@ -107,14 +106,13 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
         scanOrder(a, d, e.project(width, height))
     }
 
-    private fun scanOrder(a: Vertex, b: Vertex, c: Vertex) = if (a.y < b.y) {
-        when {
+    private fun scanOrder(a: Vertex, b: Vertex, c: Vertex) = when {
+        a.y < b.y -> when {
             c.y < a.y -> scanConvert(c, a, b, topToMiddle, topToBottom, midToBottom, topToBottom)
             b.y < c.y -> scanConvert(a, b, c, topToMiddle, topToBottom, midToBottom, topToBottom)
             else -> scanConvert(a, c, b, topToBottom, topToMiddle, topToBottom, midToBottom)
         }
-    } else {
-        when {
+        else -> when {
             c.y < b.y -> scanConvert(c, b, a, topToBottom, topToMiddle, topToBottom, midToBottom)
             a.y < c.y -> scanConvert(b, a, c, topToBottom, topToMiddle, topToBottom, midToBottom)
             else -> scanConvert(b, c, a, topToMiddle, topToBottom, midToBottom, topToBottom)
@@ -188,11 +186,11 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
 
     private companion object {
         fun isBackFacing(a: Vertex, b: Vertex, c: Vertex): Boolean {
-            val bvw = 1F / b.w
-            val cvw = 1F / c.w
-            val avy = a.y / a.w
-            val avx = a.x / a.w
-            return (avy - b.y * bvw) * (c.x * cvw - avx) <= (avy - c.y * cvw) * (b.x * bvw - avx)
+            val bw = 1F / b.w
+            val cw = 1F / c.w
+            val ay = a.y / a.w
+            val ax = a.x / a.w
+            return (ay - b.y * bw) * (c.x * cw - ax) <= (ay - c.y * cw) * (b.x * bw - ax)
         }
     }
 }

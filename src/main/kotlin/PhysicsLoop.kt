@@ -17,15 +17,28 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.math
+import com.zynaps.physics.Simulation
 
-data class Plane(val normal: Vector3, val distance: Float) {
+class PhysicsLoop(private val simulation: Simulation) {
+    private var active = false
 
-    constructor(x: Float, y: Float, z: Float, d: Float) : this(Vector3(x, y, z), d)
+    fun start() {
+        if (active) return
+        Thread {
+            active = true
+            var tock = System.nanoTime()
+            while (active) {
+                val tick = tock
+                tock = System.nanoTime()
+                val t0 = System.nanoTime()
+                simulation.integrate((tock - tick) / 1000000000F)
+                println((System.nanoTime() - t0) / 1000000000.0)
+                Thread.sleep(1)
+            }
+        }.start()
+    }
 
-    fun dot(x: Float, y: Float, z: Float) = normal.x * x + normal.y * y + normal.z * z + distance
-
-    companion object {
-        val ZERO = Plane(Vector3.ZERO, 0F)
+    fun stop() {
+        active = false
     }
 }
