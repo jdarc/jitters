@@ -5,21 +5,21 @@ import kotlin.math.*
 @Suppress("DuplicatedCode")
 class HullMaker {
 
-    fun build(points: Array<Point3D>, maxPoints: Int = 64, normalEpsilon: Double = 0.001): HullResult {
+    fun build(points: Array<Point3D>, maxPoints: Int = 32, normalEpsilon: Double = 0.001): HullResult {
         if (points.isNotEmpty()) {
             val scale = Vec3()
             val pointCloud = points.map { Vec3(it.x, it.y, it.z) }.toTypedArray()
-            val vertexSource = Array(points.size.coerceAtLeast(8)) { Vec3() }
-            val numVertices = cleanupVertices(pointCloud, vertexSource, normalEpsilon, scale)
+            val vertexDest = Array(points.size.coerceAtLeast(8)) { Vec3() }
+            val numVertices = cleanupVertices(pointCloud, vertexDest, normalEpsilon, scale)
             if (numVertices > 0) {
-                for (i in 0 until numVertices) vertexSource[i].scale(scale)
-                val indices = calcHull(vertexSource, numVertices, maxPoints)
+                for (i in 0 until numVertices) vertexDest[i].scale(scale)
+                val indices = calcHull(vertexDest, numVertices, maxPoints)
                 if (indices.isNotEmpty()) {
-                    return HullResult(bringOutYourDead(vertexSource, indices).map { Point3D(it) }, indices, true)
+                    return HullResult(bringOutYourDead(vertexDest, indices), indices, true)
                 }
             }
         }
-        return HullResult(emptyList(), IntArray(0), false)
+        return HullResult(emptyArray(), IntArray(0), false)
     }
 
     private fun cleanupVertices(srcPoints: Array<Vec3>, dstPoints: Array<Vec3>, normalEpsilon: Double, outScale: Vec3): Int {
@@ -278,17 +278,17 @@ class HullMaker {
             return if (m == 0.0) out.set(1.0, 0.0, 0.0) else out.set(x, y, z).scale(1.0 / m)
         }
 
-        fun bringOutYourDead(vertices: Array<Vec3>, indices: IntArray): Array<Vec3> {
+        fun bringOutYourDead(vertices: Array<Vec3>, indices: IntArray): Array<Point3D> {
             var count = 0
-            val outVertices = MutableList(vertices.size) { Vec3() }
+            val outVertices = mutableListOf<Point3D>()
             val used = IntArray(vertices.size)
             for (i in indices.indices) {
                 val v = indices[i]
                 if (used[v] != 0) {
                     indices[i] = used[v] - 1
                 } else {
+                    outVertices.add(Point3D(vertices[v]))
                     indices[i] = count
-                    outVertices[count].set(vertices[v])
                     used[v] = ++count
                 }
             }
