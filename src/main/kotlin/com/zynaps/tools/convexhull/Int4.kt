@@ -10,10 +10,11 @@ internal class Int4(var x: Int = 0, var y: Int = 0, var z: Int = 0, var w: Int =
         else -> throw IllegalArgumentException()
     }
 
-    fun set(x: Int, y: Int, z: Int, w: Int) {
+    fun set(x: Int, y: Int, z: Int, w: Int): Int4 {
         this.x = x
         this.y = y
         this.z = z
         this.w = w
+        return this
     }
 }

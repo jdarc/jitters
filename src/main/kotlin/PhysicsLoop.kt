@@ -30,9 +30,9 @@ class PhysicsLoop(private val simulation: Simulation) {
             while (active) {
                 val tick = tock
                 tock = System.nanoTime()
-                val t0 = System.nanoTime()
+//                val t0 = System.nanoTime()
                 simulation.integrate((tock - tick) / 1000000000F)
-                println((System.nanoTime() - t0) / 1000000000.0)
+//                println((System.nanoTime() - t0) / 1000000000.0)
                 Thread.sleep(1)
             }
         }.start()

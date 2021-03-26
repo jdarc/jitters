@@ -108,7 +108,9 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         }
 
         fun computeHull(model: Model): Model {
+            val t0 = System.nanoTime()
             val result = HullMaker().build(model.extractPoints().map { (x, y, z) -> Point3D(x.toDouble(), y.toDouble(), z.toDouble()) })
+            println((System.nanoTime() - t0) / 1000000000.0)
             val assembler = Assembler()
             result.vertices.forEach { (x, y, z) -> assembler.addVertex(x, y, z) }
             result.indices.toList().windowed(3, 3).forEach { assembler.createTriangle(it[0], it[1], it[2]) }

@@ -1,8 +1,8 @@
 package com.zynaps.tools.convexhull
 
-internal class Tri(a: Int, b: Int, c: Int) : Int3(a, b, c) {
+internal class Tri(a: Int, b: Int, c: Int, id: Int = 0) : Int3(a, b, c) {
     var n = Int3(-1, -1, -1)
-    var id = 0
+    var id = id
     var vmax = -1
     var rise = 0.0
 

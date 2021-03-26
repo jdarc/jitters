@@ -40,6 +40,8 @@ internal data class Vec3(var x: Double = 0.0, var y: Double = 0.0, var z: Double
 
     fun sub(a: Vec3, b: Vec3) = set(a.x - b.x, a.y - b.y, a.z - b.z)
 
+    fun mul(scale: Vec3) = set(x * scale.x, y * scale.y, z * scale.z)
+
     fun negate(v: Vec3) = set(-v.x, -v.y, -v.z)
 
     fun scale(s: Double, v: Vec3) = set(v).scale(s)
