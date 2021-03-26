@@ -13,9 +13,9 @@ application {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
+        useIR = true
         jvmTarget = "11"
         languageVersion = "1.5"
         freeCompilerArgs = listOf("-Xinline-classes")
-        useIR = true
     }
 }
