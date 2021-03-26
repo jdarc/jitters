@@ -29,22 +29,17 @@ class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHa
     private val collisionSystem = CollisionSystem(broadPhase, narrowPhase)
     private val collisions = mutableListOf<Collision>()
     private val bodies = mutableSetOf<RigidBody>()
+    private val added = mutableSetOf<RigidBody>()
+    private val removed = mutableSetOf<RigidBody>()
 
     var gravity = Vector3(0F, -9.8F, 0F)
 
     fun addBody(body: RigidBody) {
-        bodies += body
-        collisionSystem.bodies += body
+        added += body
     }
 
     fun removeBody(body: RigidBody) {
-        bodies -= body
-        collisionSystem.bodies -= body
-    }
-
-    fun removeAllBodies() {
-        bodies.clear()
-        collisionSystem.bodies.clear()
+        removed += body
     }
 
     override fun impact(body0: RigidBody, body1: RigidBody, normal: Vector3, points: Array<CollisionPoints>) {
@@ -62,7 +57,7 @@ class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHa
         }
 
         collisions.clear()
-        collisionSystem.detect(this)
+        collisionSystem.detect(bodies, this)
 
         for (body in activeBodies) body.restoreState()
 
@@ -76,6 +71,12 @@ class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHa
             body.updatePosition(dt)
             body.clearForces()
         }
+
+        bodies += added
+        added.clear()
+
+        bodies -= removed
+        removed.clear()
     }
 
     private fun processCollisions(collisions: List<Collision>, dt: Float, iterations: Int, forceInelastic: Boolean) {

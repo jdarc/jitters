@@ -24,9 +24,7 @@ import com.zynaps.physics.RigidBody
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CollisionSystem(val broadPhase: BroadPhase, val narrowPhase: NarrowPhase, val tolerance: Float = Globals.COLLISION_TOLERANCE) {
-    val bodies = mutableSetOf<RigidBody>()
-
-    fun detect(handler: CollisionHandler) {
+    fun detect(bodies: Set<RigidBody>, handler: CollisionHandler) {
         val candidates = broadPhase.collect(bodies)
         for ((body0, body1) in candidates) {
             val results = narrowPhase.test(body0.skin, body1.skin, tolerance)

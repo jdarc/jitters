@@ -10,8 +10,6 @@ internal open class Int3(var x: Int = 0, var y: Int = 0, var z: Int = 0) {
         this.z = z
     }
 
-    fun set(i: Int3) = set(i.x, i.y, i.z)
-
     operator fun get(index: Int) = when (index) {
         0 -> x
         1 -> y

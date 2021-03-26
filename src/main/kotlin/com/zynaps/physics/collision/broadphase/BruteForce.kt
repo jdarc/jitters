@@ -25,8 +25,8 @@ import com.zynaps.physics.collision.BroadPhase
 class BruteForce : BroadPhase {
     override fun collect(bodies: Set<RigidBody>): Set<Pair<RigidBody, RigidBody>> {
         val candidates = mutableSetOf<Pair<RigidBody, RigidBody>>()
-        for (body0 in bodies.iterator()) {
-            for (body1 in bodies.iterator()) {
+        for (body0 in bodies) {
+            for (body1 in bodies) {
                 if ((!body1.isActive || body0.id < body1.id) && body0.hitTest(body1)) {
                     candidates.add(body0 to body1)
                 }
