@@ -1,6 +1,7 @@
 # Jitters
 
-3D physics engine implementing convex hull collision detection and response
+3D physics engine implementing convex hull collision detection and response.
+Mostly patched together from other projects, namely JigLib & Bullet.
 
 ## Running
 
