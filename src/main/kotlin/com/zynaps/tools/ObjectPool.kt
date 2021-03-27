@@ -17,30 +17,24 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.zynaps.physics.collision.narrowphase
+package com.zynaps.tools
 
-import com.zynaps.physics.collision.ImpactDetails
-import com.zynaps.physics.collision.NarrowPhase
-import com.zynaps.physics.geometry.CollisionSkin
+@Suppress("unused")
+class ObjectPool<T>(private val factory: () -> T) {
+    private var pool = generate(16, factory)
+    private var index = 0
 
-class GjkEpa : NarrowPhase {
-    private val gjk = Gjk()
-    private val epa = Epa()
-    private var results = Results()
+    val capacity get() = pool.size
 
-    override fun test(shape0: CollisionSkin, shape1: CollisionSkin, margin: Float): ImpactDetails {
-        results.status = ResultsStatus.SEPARATED
-        results.gjkIterations = gjk.iterations + 1
-        if (gjk.init(shape0, shape1, margin).searchOrigin()) {
-            results.epaIterations = epa.iterations + 1
-            results.initialPenetration = epa.evaluate(gjk)
-            if (results.initialPenetration > 0F) {
-                results.r0 = epa.nearest[0]
-                results.r1 = epa.nearest[1]
-                results.status = ResultsStatus.PENETRATING
-                results.normal = epa.normal
-            } else if (epa.failed) results.status = ResultsStatus.EPA_FAILED
-        } else if (gjk.failed) results.status = ResultsStatus.GJK_FAILED
-        return results
+    fun next(): T {
+        if (pool.size <= index) pool += generate(pool.size, factory)
+        return pool[index++]
     }
+
+    fun reset() {
+        index = 0
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private inline fun generate(size: Int, factory: () -> T) = Array<Any?>(size) { factory() } as Array<T>
 }

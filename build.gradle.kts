@@ -7,9 +7,7 @@ plugins {
 
 repositories { mavenCentral() }
 
-application {
-    mainClass.set("ProgramKt")
-}
+application { mainClass.set("ProgramKt") }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

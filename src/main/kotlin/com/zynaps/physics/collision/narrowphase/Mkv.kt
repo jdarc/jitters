@@ -21,9 +21,10 @@ package com.zynaps.physics.collision.narrowphase
 
 import com.zynaps.math.Vector3
 
-internal data class Mkv(var w: Vector3 = Vector3.ZERO, var r: Vector3 = Vector3.ZERO) {
-    fun set(m: Mkv) {
-        w = m.w
-        r = m.r
+internal class Mkv(var w: Vector3 = Vector3.ZERO, var r: Vector3 = Vector3.ZERO) {
+    fun set(m: Mkv) = set(m.w, m.r)
+    fun set(w: Vector3, r: Vector3) {
+        this.w = w
+        this.r = r
     }
 }

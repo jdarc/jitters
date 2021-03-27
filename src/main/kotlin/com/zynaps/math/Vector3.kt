@@ -24,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-data class Vector3(val x: Float, val y: Float, val z: Float) {
+data class Vector3(@JvmField val x: Float, @JvmField val y: Float, @JvmField val z: Float) {
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
 
@@ -71,5 +71,19 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
         fun cross(a: Vector3, b: Vector3) = Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 
         fun normalize(v: Vector3) = v / sqrt(dot(v, v))
+
+        fun crossDot(xa: Vector3, xb: Vector3, dv: Vector3): Float {
+            val cx = xa.y * xb.z - xa.z * xb.y
+            val cy = xa.z * xb.x - xa.x * xb.z
+            val cz = xa.x * xb.y - xa.y * xb.x
+            return cx * dv.x + cy * dv.y + cz * dv.z
+        }
+
+        fun crossLength(a: Vector3, b: Vector3): Float {
+            val cx = a.y * b.z - a.z * b.y
+            val cy = a.z * b.x - a.x * b.z
+            val cz = a.x * b.y - a.y * b.x
+            return sqrt(cx * cx + cy * cy + cz * cz)
+        }
     }
 }

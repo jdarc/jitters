@@ -45,10 +45,11 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         val assembler = createBox(1F, 1F, 1F)
         assembler.withMaterial(CheckerMaterial(0x8B2222, 0xCD3232, 8F))
         val box = assembler.compile()
+        val points = box.extractPoints()
         for (z in -2..3) {
             for (y in 0..5) {
                 for (x in -2..3) {
-                    val body = RigidBody(ConvexHull(box.extractPoints()))
+                    val body = RigidBody(ConvexHull(points))
                     body.mass = 10F
                     body.moveTo(Vector3(x * 1.1F, y * 1.1F, z * 1.1F))
                     simulation.addBody(body)
@@ -88,6 +89,38 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         )
     }
 
+    fun addPerimeter() {
+        val assembler = createBox(10F, 4F, 1F)
+        assembler.withMaterial(CheckerMaterial(0x8B2222, 0xCD3232, 8F))
+        val box = assembler.compile()
+        val points = box.extractPoints()
+        run {
+            val body = RigidBody(ConvexHull(points))
+            body.mass = 10F
+            body.isMovable = false
+            body.moveTo(Vector3(0F, 1F, 4F))
+            simulation.addBody(body)
+            scene.root.addNode(PhysicsNode(body).addNode(Node(geometry = box)))
+        }
+        run {
+            val body = RigidBody(ConvexHull(points))
+            body.mass = 10F
+            body.isMovable = false
+            body.moveTo(Vector3(0F, 1F, -4F))
+            simulation.addBody(body)
+            scene.root.addNode(PhysicsNode(body).addNode(Node(geometry = box)))
+        }
+        run {
+            val body = RigidBody(ConvexHull(points))
+            body.mass = 10F
+            body.moveTo(Vector3(4F, 1F, 0F))
+            body.orientation = Matrix4.createRotationY(1.571F )
+            body.isMovable = false
+            simulation.addBody(body)
+            scene.root.addNode(PhysicsNode(body).addNode(Node(geometry = box)))
+        }
+    }
+
     init {
         val dino = getModelAndHull("dinorider.obj")
         val grunt = getModelAndHull("grunt.obj")
@@ -123,14 +156,14 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
             val d = 0.5F * depth.coerceAtLeast(0.00001F)
             val assembler = Assembler()
 
-            assembler.addVertex(-w, -h, d)
-            assembler.addVertex(w, -h, d)
-            assembler.addVertex(w, h, d)
+            assembler.addVertex(-w,-h, d)
+            assembler.addVertex( w,-h, d)
+            assembler.addVertex( w, h, d)
             assembler.addVertex(-w, h, d)
-            assembler.addVertex(-w, -h, -d)
-            assembler.addVertex(w, -h, -d)
-            assembler.addVertex(w, h, -d)
-            assembler.addVertex(-w, h, -d)
+            assembler.addVertex(-w,-h,-d)
+            assembler.addVertex( w,-h,-d)
+            assembler.addVertex( w, h,-d)
+            assembler.addVertex(-w, h,-d)
 
             assembler.addUvCoordinate(0F, 1F)
             assembler.addUvCoordinate(1F, 1F)

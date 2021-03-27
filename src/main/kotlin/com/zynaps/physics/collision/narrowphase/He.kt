@@ -21,7 +21,4 @@ package com.zynaps.physics.collision.narrowphase
 
 import com.zynaps.math.Vector3
 
-internal class He {
-    var v = Vector3.ZERO
-    var n: He? = null
-}
+internal class He(var v: Vector3 = Vector3.ZERO, var n: He? = null)

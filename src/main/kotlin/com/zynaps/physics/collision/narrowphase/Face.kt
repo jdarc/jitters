@@ -20,7 +20,7 @@
 package com.zynaps.physics.collision.narrowphase
 
 import com.zynaps.math.Vector3
-import kotlin.math.max
+import com.zynaps.physics.Globals
 
 internal class Face {
     val v = Array(3) { Mkv() }
@@ -33,19 +33,15 @@ internal class Face {
     var next: Face? = null
 
     fun set(a: Mkv, b: Mkv, c: Mkv, epaInFaceEps: Float): Boolean {
-        var tmp1 = b.w - a.w
-        var tmp2 = c.w - a.w
-        val nrm = Vector3.cross(tmp1, tmp2)
-        val len = nrm.length()
-        tmp1 = Vector3.cross(a.w, b.w)
-        tmp2 = Vector3.cross(b.w, c.w)
-        val tmp3 = Vector3.cross(c.w, a.w)
         v[0] = a
         v[1] = b
         v[2] = c
         mark = 0
-        n = nrm * (1F / if (len > 0F) len else Float.MAX_VALUE)
-        d = max(0F, -Vector3.dot(n, a.w))
-        return Vector3.dot(tmp1, nrm) >= -epaInFaceEps && Vector3.dot(tmp2, nrm) >= -epaInFaceEps && Vector3.dot(tmp3, nrm) >= -epaInFaceEps
+        val nrm = Vector3.cross(b.w - a.w, c.w - a.w)
+        n = Vector3.normalize(nrm)
+        d = (-Vector3.dot(n, a.w)).coerceIn(Globals.TINY, Globals.HUGE)
+        return Vector3.crossDot(a.w, b.w, nrm) >= -epaInFaceEps &&
+               Vector3.crossDot(b.w, c.w, nrm) >= -epaInFaceEps &&
+               Vector3.crossDot(c.w, a.w, nrm) >= -epaInFaceEps
     }
 }

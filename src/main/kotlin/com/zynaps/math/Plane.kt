@@ -19,7 +19,7 @@
 
 package com.zynaps.math
 
-data class Plane(val normal: Vector3, val distance: Float) {
+data class Plane(@JvmField val normal: Vector3, @JvmField val distance: Float) {
 
     constructor(x: Float, y: Float, z: Float, d: Float) : this(Vector3(x, y, z), d)
 

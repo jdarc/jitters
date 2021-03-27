@@ -60,6 +60,7 @@ class MainFrame : JFrame("Jitters - Physics Engine") {
 
         val scenery = Scenery(scene, simulation)
         scenery.addGround()
+        scenery.addPerimeter()
 //        scenery.addStackedBoxes()
         scenery.addModels { toggle }
 

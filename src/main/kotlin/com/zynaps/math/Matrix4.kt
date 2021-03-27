@@ -23,10 +23,10 @@ import kotlin.math.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate", "DuplicatedCode")
 data class Matrix4(
-    val m00: Float, val m10: Float, val m20: Float, val m30: Float,
-    val m01: Float, val m11: Float, val m21: Float, val m31: Float,
-    val m02: Float, val m12: Float, val m22: Float, val m32: Float,
-    val m03: Float, val m13: Float, val m23: Float, val m33: Float
+    @JvmField val m00: Float, @JvmField val m10: Float, @JvmField val m20: Float, @JvmField val m30: Float,
+    @JvmField val m01: Float, @JvmField val m11: Float, @JvmField val m21: Float, @JvmField val m31: Float,
+    @JvmField val m02: Float, @JvmField val m12: Float, @JvmField val m22: Float, @JvmField val m32: Float,
+    @JvmField val m03: Float, @JvmField val m13: Float, @JvmField val m23: Float, @JvmField val m33: Float
 ) {
 
     operator fun unaryMinus() = Matrix4(
