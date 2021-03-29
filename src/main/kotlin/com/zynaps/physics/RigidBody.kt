@@ -20,9 +20,9 @@
 package com.zynaps.physics
 
 import com.zynaps.math.Matrix4
+import com.zynaps.math.Scalar.sqr
 import com.zynaps.math.Vector3
 import com.zynaps.physics.geometry.CollisionSkin
-import kotlin.math.max
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class RigidBody(val skin: CollisionSkin) {
@@ -33,9 +33,7 @@ class RigidBody(val skin: CollisionSkin) {
     private var invOrientation = Matrix4.IDENTITY
 
     private val storeState = PhysicsState()
-    private val newState = PhysicsState()
-
-    var applyGravity = true
+    private val state = PhysicsState()
 
     var isMovable = true
 
@@ -44,9 +42,9 @@ class RigidBody(val skin: CollisionSkin) {
             field = isMovable && value
         }
 
-    var mass = 0F
+    var mass = 1F
         set(value) {
-            field = value
+            field = value.coerceAtLeast(Globals.TINY)
             bodyInertia = skin.calculateBodyInertia(field)
             bodyInvInertia = Matrix4.invert(bodyInertia)
             updateInertia()
@@ -55,52 +53,39 @@ class RigidBody(val skin: CollisionSkin) {
     val inverseMass get() = 1F / mass
 
     var position
-        get() = newState.position
+        get() = state.position
         set(value) {
-            newState.position = value
+            state.position = value
         }
 
     var orientation
-        get() = newState.orientation
+        get() = state.orientation
         set(value) {
-            newState.orientation = value
+            state.orientation = value
             updateInertia()
         }
 
     var linearVelocity
-        get() = newState.linearVelocity
+        get() = state.linearVelocity
         set(value) {
-            newState.linearVelocity = value
+            state.linearVelocity = value
         }
 
-    var linearVelocityDamping = Vector3(0.999F, 0.999F, 0.999F)
+    var linearVelocityDamping = Vector3(0.9995)
         set(value) {
             field = Vector3.clamp(value, Vector3.ZERO, Vector3.ONE)
-        }
-
-    var maxLinearVelocities = Vector3(Globals.HUGE, Globals.HUGE, Globals.HUGE)
-        set(value) {
-            field = Vector3.abs(value)
         }
 
     var angularVelocity
-        get() = newState.angularVelocity
+        get() = state.angularVelocity
         set(value) {
-            newState.angularVelocity = value
+            state.angularVelocity = value
         }
 
-    var angularVelocityDamping = Vector3(0.999F, 0.999F, 0.999F)
+    var angularVelocityDamping = Vector3(0.9995)
         set(value) {
             field = Vector3.clamp(value, Vector3.ZERO, Vector3.ONE)
         }
-
-    var maxAngularVelocities = Vector3(Globals.HUGE, Globals.HUGE, Globals.HUGE)
-        set(value) {
-            field = Vector3.abs(value)
-        }
-
-    var velocityChanged = true
-        private set
 
     var force = Vector3.ZERO
 
@@ -112,23 +97,20 @@ class RigidBody(val skin: CollisionSkin) {
     var worldInvInertia = Matrix4.IDENTITY
         private set
 
-    fun storeState() = storeState.copy(newState)
+    fun storeState() = storeState.copy(state)
 
     fun restoreState() {
-        newState.copy(storeState)
+        state.copy(storeState)
         updateInertia()
     }
 
-    fun hitTest(other: RigidBody): Boolean {
-        val sumRadius = skin.boundingSphere + other.skin.boundingSphere
-        return (position - other.position).lengthSquared() <= sumRadius * sumRadius
-    }
+    fun hitTest(other: RigidBody) = (position - other.position).lengthSquared() <= sqr(skin.boundingSphere + other.skin.boundingSphere)
 
     fun moveTo(position: Vector3, orientation: Matrix4 = Matrix4.IDENTITY) {
-        newState.position = position
-        newState.orientation = orientation
-        newState.linearVelocity = Vector3.ZERO
-        newState.angularVelocity = Vector3.ZERO
+        state.position = position
+        state.orientation = orientation
+        state.linearVelocity = Vector3.ZERO
+        state.angularVelocity = Vector3.ZERO
     }
 
     fun clearForces() {
@@ -139,78 +121,63 @@ class RigidBody(val skin: CollisionSkin) {
     fun addWorldForce(force: Vector3) {
         if (!isMovable) return
         this.force += force
-        velocityChanged = true
     }
 
     fun addWorldForce(force: Vector3, position: Vector3) {
         if (!isMovable) return
         this.force += force
-        torque += Vector3.cross(position - newState.position, force)
-        velocityChanged = true
+        torque += Vector3.cross(position - state.position, force)
     }
 
     fun addWorldTorque(torque: Vector3) {
         if (!isMovable) return
         this.torque += torque
-        velocityChanged = true
     }
 
     fun applyWorldImpulse(impulse: Vector3, position: Vector3) {
         if (!isMovable) return
         linearVelocity += impulse * inverseMass
-        angularVelocity += worldInvInertia * Vector3.cross(position - newState.position, impulse)
-        velocityChanged = true
+        angularVelocity += worldInvInertia * Vector3.cross(position - state.position, impulse)
     }
 
     fun addBodyForce(force: Vector3) {
         if (!isMovable) return
         this.force += orientation * force
-        velocityChanged = true
     }
 
     fun addBodyForce(force: Vector3, position: Vector3) {
         if (!isMovable) return
-        val acc = orientation * force
-        val pos = orientation * position
-        this.force += acc
-        torque += Vector3.cross(pos, acc)
-        velocityChanged = true
+        this.force += orientation * force
+        torque += Vector3.cross(orientation * position, orientation * force)
     }
 
     fun addBodyTorque(torque: Vector3) {
         if (!isMovable) return
         this.torque += orientation * torque
-        velocityChanged = true
     }
 
     fun applyBodyWorldImpulse(impulse: Vector3, delta: Vector3) {
         if (!isMovable) return
         linearVelocity += impulse * inverseMass
         angularVelocity += worldInvInertia * Vector3.cross(delta, impulse)
-        velocityChanged = true
     }
 
     fun updateVelocity(dt: Float) {
         if (!isMovable || !isActive) return
-        linearVelocity += force * (dt * inverseMass)
-        angularVelocity += worldInvInertia * torque * dt
-        angularVelocity *= 0.9995F
+        linearVelocity = linearVelocityDamping * (linearVelocity + force * (inverseMass * dt))
+        angularVelocity = angularVelocityDamping * (angularVelocity + worldInvInertia * torque * dt)
     }
 
     fun updatePosition(dt: Float) {
         if (isMovable && isActive) {
-            clampLinearVelocity()
-            clampAngularVelocity()
+            val angMomBefore = Matrix4.transformNormal(worldInertia, angularVelocity)
 
-            val angMomBefore = worldInertia * newState.angularVelocity
+            position += linearVelocity * dt
+            val ang = angularVelocity.length() * dt
+            if (ang > Globals.TINY) orientation = Matrix4.createFromAxisAngle(angularVelocity, ang) * orientation
 
-            newState.position += newState.linearVelocity * dt
-            newState.orientation = computeAngularTransform(newState.angularVelocity, dt) * newState.orientation
-
-            invOrientation = Matrix4.transpose(newState.orientation)
-            worldInvInertia = newState.orientation * bodyInvInertia * invOrientation
-            worldInertia = newState.orientation * bodyInertia * invOrientation
-            angularVelocity = worldInvInertia * angMomBefore
+            updateInertia()
+            angularVelocity = Matrix4.transformNormal(worldInvInertia, angMomBefore)
         }
         skin.origin = position
         skin.basis = orientation
@@ -218,27 +185,10 @@ class RigidBody(val skin: CollisionSkin) {
 
     fun velocityRelativeTo(position: Vector3) = linearVelocity + Vector3.cross(angularVelocity, position)
 
-    private fun clampLinearVelocity() {
-        linearVelocity = Vector3.clamp(linearVelocity, -maxLinearVelocities, maxLinearVelocities)
-    }
-
-    private fun clampAngularVelocity() {
-        val v = Vector3.abs(angularVelocity) / maxAngularVelocities
-        val f = max(v.x, max(v.y, v.z))
-        if (f < 1F) return
-        angularVelocity /= f
-    }
-
     private fun updateInertia() {
         invOrientation = Matrix4.transpose(orientation)
         worldInertia = orientation * bodyInertia * invOrientation
         worldInvInertia = orientation * bodyInvInertia * invOrientation
-    }
-
-    private fun computeAngularTransform(angularVelocity: Vector3, dt: Float): Matrix4 {
-        val ang = angularVelocity.length()
-        if (ang < Globals.TINY) return orientation
-        return Matrix4.orthonormalise(Matrix4.createFromAxisAngle(angularVelocity, ang * dt))
     }
 
     override fun equals(other: Any?) = when {

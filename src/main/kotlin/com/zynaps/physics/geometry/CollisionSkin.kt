@@ -35,7 +35,7 @@ abstract class CollisionSkin {
             field = value.coerceIn(0F, 1F)
         }
 
-    var friction = 0.5F
+    var friction = 0.3F
         set(value) {
             field = value.coerceIn(0F, 1F)
         }

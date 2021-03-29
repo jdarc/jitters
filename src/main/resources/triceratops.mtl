@@ -1,13 +1,7 @@
-newmtl Horns
-Kd 0.235294 0.235294 0.235294
-
-newmtl Skin
-Kd 0.592156 0.552941 0.513725
-
 newmtl Eyes
 Kd 0.078431 0.078431 0.078431
 
-newmtl Toes
+newmtl Horns
 Kd 0.235294 0.235294 0.235294
 
 newmtl Mouth
@@ -16,3 +10,8 @@ Kd 0.352941 0.313725 0.274509
 newmtl Nostrils
 Kd 0.156862 0.117647 0.078431
 
+newmtl Skin
+Kd 0.592156 0.552941 0.513725
+
+newmtl Toes
+Kd 0.235294 0.235294 0.235294

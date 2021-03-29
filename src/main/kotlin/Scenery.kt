@@ -46,9 +46,9 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         assembler.withMaterial(CheckerMaterial(0x8B2222, 0xCD3232, 8F))
         val box = assembler.compile()
         val points = box.extractPoints()
-        for (z in -2..3) {
-            for (y in 0..5) {
-                for (x in -2..3) {
+        for (z in -1..2) {
+            for (y in 0..1) {
+                for (x in -1..2) {
                     val body = RigidBody(ConvexHull(points))
                     body.mass = 10F
                     body.moveTo(Vector3(x * 1.1F, y * 1.1F, z * 1.1F))
@@ -114,7 +114,7 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
             val body = RigidBody(ConvexHull(points))
             body.mass = 10F
             body.moveTo(Vector3(4F, 1F, 0F))
-            body.orientation = Matrix4.createRotationY(1.571F )
+            body.orientation = Matrix4.createRotationY(1.571F)
             body.isMovable = false
             simulation.addBody(body)
             scene.root.addNode(PhysicsNode(body).addNode(Node(geometry = box)))
@@ -126,7 +126,8 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         val grunt = getModelAndHull("grunt.obj")
         val triceratops = getModelAndHull("triceratops.obj")
         val bowlingPin = getModelAndHull("bowlingpin.obj")
-        models = arrayOf(dino, grunt, triceratops, bowlingPin)
+        val sonic = getModelAndHull("sonic.obj")
+        models = arrayOf(dino, grunt, triceratops, bowlingPin, sonic)
     }
 
     private companion object {
@@ -156,14 +157,14 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
             val d = 0.5F * depth.coerceAtLeast(0.00001F)
             val assembler = Assembler()
 
-            assembler.addVertex(-w,-h, d)
-            assembler.addVertex( w,-h, d)
-            assembler.addVertex( w, h, d)
+            assembler.addVertex(-w, -h, d)
+            assembler.addVertex(w, -h, d)
+            assembler.addVertex(w, h, d)
             assembler.addVertex(-w, h, d)
-            assembler.addVertex(-w,-h,-d)
-            assembler.addVertex( w,-h,-d)
-            assembler.addVertex( w, h,-d)
-            assembler.addVertex(-w, h,-d)
+            assembler.addVertex(-w, -h, -d)
+            assembler.addVertex(w, -h, -d)
+            assembler.addVertex(w, h, -d)
+            assembler.addVertex(-w, h, -d)
 
             assembler.addUvCoordinate(0F, 1F)
             assembler.addUvCoordinate(1F, 1F)

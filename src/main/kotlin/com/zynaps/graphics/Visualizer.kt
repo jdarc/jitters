@@ -20,12 +20,12 @@
 package com.zynaps.graphics
 
 import com.zynaps.math.Matrix4
+import com.zynaps.math.Scalar.ceil
+import com.zynaps.math.Scalar.min
 import com.zynaps.math.Vector3
 import java.awt.Color
 import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
-import kotlin.math.ceil
-import kotlin.math.min
 
 @Suppress("unused", "HasPlatformType")
 class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
@@ -86,7 +86,7 @@ class Visualizer(private val bitmap: Bitmap, private val shadowSize: Int) {
         val twoOverHeight = 2F / bitmap.height
         val halfShadowSize = shadowSize shr 1
         val shadowSize1 = shadowSize - 1
-        val size = ceil(bitmap.height.toFloat() / CPUS).toInt()
+        val size = ceil(bitmap.height.toFloat() / CPUS)
         ForkJoinPool.commonPool().invokeAll((0 until bitmap.height step size).mapIndexed { _, it ->
             Executors.callable {
                 for (y in it until it + min(size, bitmap.height - it)) {

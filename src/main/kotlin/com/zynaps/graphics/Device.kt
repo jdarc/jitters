@@ -20,19 +20,22 @@
 package com.zynaps.graphics
 
 import com.zynaps.math.Matrix4
+import com.zynaps.math.Scalar.ceil
+import com.zynaps.math.Scalar.max
+import com.zynaps.math.Scalar.min
+import com.zynaps.math.Scalar.sqrt
 import com.zynaps.math.Vector3
+import com.zynaps.tools.Parallel
 import java.lang.Math.fma
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 
 class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatArray, private val width: Int, private val height: Int) {
-    private var lightDir = Vector3.ZERO
+    private var transformed = Array(4096) { Vertex() }
     private val clipper = Clipper()
     private val gradients = Gradients()
     private val topToBottom = Edge()
     private val topToMiddle = Edge()
     private val midToBottom = Edge()
+    private var lightDir = Vector3.ZERO
     private var cullFn = ::renderFront
     private var renderFn = ::clipRender
     private val shader = if (colorBuffer.isEmpty()) ::noShade else ::shade
@@ -68,20 +71,46 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
         val normalMatrix = Matrix4.transpose(Matrix4.invert(world))
         val transform = proj * view * world
 
+        if (transformed.size < vertexBuffer.size / 8) {
+            transformed += Array(transformed.size) { Vertex() }
+        }
+
+        Parallel.partition(vertexBuffer.size / 8) { _, from, to ->
+            for (i in from * 8 until to * 8 step 8) {
+                val t = transformed[i shr 3]
+                val vx = vertexBuffer[i + 0]
+                val vy = vertexBuffer[i + 1]
+                val vz = vertexBuffer[i + 2]
+                t.x = fma(transform.m00, vx, fma(transform.m01, vy, fma(transform.m02, vz, transform.m03)))
+                t.y = fma(transform.m10, vx, fma(transform.m11, vy, fma(transform.m12, vz, transform.m13)))
+                t.z = fma(transform.m20, vx, fma(transform.m21, vy, fma(transform.m22, vz, transform.m23)))
+                t.w = fma(transform.m30, vx, fma(transform.m31, vy, fma(transform.m32, vz, transform.m33)))
+                val nx = vertexBuffer[i + 3]
+                val ny = vertexBuffer[i + 4]
+                val nz = vertexBuffer[i + 5]
+                val tnx = fma(normalMatrix.m00, nx, fma(normalMatrix.m01, ny, normalMatrix.m02 * nz))
+                val tny = fma(normalMatrix.m10, nx, fma(normalMatrix.m11, ny, normalMatrix.m12 * nz))
+                val tnz = fma(normalMatrix.m20, nx, fma(normalMatrix.m21, ny, normalMatrix.m22 * nz))
+                t.l = ((-tnx * lightDir.x - tny * lightDir.y - tnz * lightDir.z) / sqrt(tnx * tnx + tny * tny + tnz * tnz)).coerceIn(0F, 1F)
+                t.u = vertexBuffer[i + 6]
+                t.v = vertexBuffer[i + 7]
+            }
+        }
+
         val a = Vertex()
         val b = Vertex()
         val c = Vertex()
-        for (i in 0 until elementCount step 3) {
-            a.transfer(indexBuffer[i + 0] shl 3, vertexBuffer, transform, normalMatrix, lightDir)
-            b.transfer(indexBuffer[i + 1] shl 3, vertexBuffer, transform, normalMatrix, lightDir)
-            c.transfer(indexBuffer[i + 2] shl 3, vertexBuffer, transform, normalMatrix, lightDir)
-            renderFn(a, b, c)
-        }
+        for (i in 0 until elementCount step 3) renderFn(
+            a.set(transformed[indexBuffer[i + 0]]),
+            b.set(transformed[indexBuffer[i + 1]]),
+            c.set(transformed[indexBuffer[i + 2]])
+        )
     }
 
     private fun fastRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(3, a, b, c, c, c)
 
-    private fun clipRender(a: Vertex, b: Vertex, c: Vertex) = cullFn(clipper.clip(a, b, c), clipper[0], clipper[1], clipper[2], clipper[3], clipper[4])
+    private fun clipRender(a: Vertex, b: Vertex, c: Vertex) =
+        cullFn(clipper.clip(a, b, c), clipper[0], clipper[1], clipper[2], clipper[3], clipper[4])
 
     private fun renderBack(delta: Int, a: Vertex, b: Vertex, c: Vertex, d: Vertex, e: Vertex) = when (delta) {
         3 -> renderFront(delta, c, b, a, a, a)
@@ -128,8 +157,8 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
     private fun shade(pLeft: Edge, pRight: Edge, height: Int, screenWidth: Int) {
         var offset = pLeft.y * screenWidth
         for (it in 0 until height) {
-            val xStart = max(0, ceil(pLeft.x).toInt())
-            var width = min(screenWidth, ceil(pRight.x).toInt()) - xStart
+            val xStart = max(0, ceil(pLeft.x))
+            var width = min(screenWidth, ceil(pRight.x)) - xStart
             var mem = offset + xStart
             val xPreStep = xStart - pLeft.x
             var z = fma(xPreStep, gradients.zOverZdX, pLeft.z)
@@ -167,8 +196,8 @@ class Device(private val colorBuffer: IntArray, private val depthBuffer: FloatAr
     private fun noShade(pLeft: Edge, pRight: Edge, height: Int, screenWidth: Int) {
         var offset = pLeft.y * screenWidth
         for (it in 0 until height) {
-            val xStart = max(0, ceil(pLeft.x).toInt())
-            var width = min(screenWidth, ceil(pRight.x).toInt()) - xStart
+            val xStart = max(0, ceil(pLeft.x))
+            var width = min(screenWidth, ceil(pRight.x)) - xStart
             var mem = offset + xStart
             var z = fma(xStart - pLeft.x, gradients.zOverZdX, pLeft.z)
             while (width-- > 0) {

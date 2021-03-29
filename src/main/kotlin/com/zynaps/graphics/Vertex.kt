@@ -19,10 +19,7 @@
 
 package com.zynaps.graphics
 
-import com.zynaps.math.Matrix4
-import com.zynaps.math.Vector3
 import java.lang.Math.fma
-import kotlin.math.sqrt
 
 internal class Vertex {
     var x = 0F
@@ -33,7 +30,7 @@ internal class Vertex {
     var v = 0F
     var l = 0F
 
-    fun copyFrom(other: Vertex) {
+    fun set(other: Vertex): Vertex {
         x = other.x
         y = other.y
         z = other.z
@@ -41,25 +38,7 @@ internal class Vertex {
         u = other.u
         v = other.v
         l = other.l
-    }
-
-    fun transfer(i: Int, vertexBuffer: FloatArray, transform: Matrix4, normalMatrix: Matrix4, lightDir: Vector3) {
-        val svx = vertexBuffer[i + 0]
-        val svy = vertexBuffer[i + 1]
-        val svz = vertexBuffer[i + 2]
-        val snx = vertexBuffer[i + 3]
-        val sny = vertexBuffer[i + 4]
-        val snz = vertexBuffer[i + 5]
-        val tnx = fma(normalMatrix.m00, snx, fma(normalMatrix.m01, sny, normalMatrix.m02 * snz))
-        val tny = fma(normalMatrix.m10, snx, fma(normalMatrix.m11, sny, normalMatrix.m12 * snz))
-        val tnz = fma(normalMatrix.m20, snx, fma(normalMatrix.m21, sny, normalMatrix.m22 * snz))
-        x = fma(transform.m00, svx, fma(transform.m01, svy, fma(transform.m02, svz, transform.m03)))
-        y = fma(transform.m10, svx, fma(transform.m11, svy, fma(transform.m12, svz, transform.m13)))
-        z = fma(transform.m20, svx, fma(transform.m21, svy, fma(transform.m22, svz, transform.m23)))
-        w = fma(transform.m30, svx, fma(transform.m31, svy, fma(transform.m32, svz, transform.m33)))
-        u = vertexBuffer[i + 6]
-        v = vertexBuffer[i + 7]
-        l = ((-tnx * lightDir.x - tny * lightDir.y - tnz * lightDir.z) / sqrt(tnx * tnx + tny * tny + tnz * tnz)).coerceIn(0F, 1F)
+        return this
     }
 
     fun lerp(from: Vertex, to: Vertex, t: Float) {

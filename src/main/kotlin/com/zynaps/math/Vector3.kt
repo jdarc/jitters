@@ -19,12 +19,17 @@
 
 package com.zynaps.math
 
+import com.zynaps.math.Scalar.sqr
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
 data class Vector3(@JvmField val x: Float, @JvmField val y: Float, @JvmField val z: Float) {
+
+    constructor(s: Number) : this(s.toFloat(), s.toFloat(), s.toFloat())
+
+    constructor(x: Number, y: Number, z: Number) : this(x.toFloat(), y.toFloat(), z.toFloat())
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
 
@@ -79,11 +84,6 @@ data class Vector3(@JvmField val x: Float, @JvmField val y: Float, @JvmField val
             return cx * dv.x + cy * dv.y + cz * dv.z
         }
 
-        fun crossLength(a: Vector3, b: Vector3): Float {
-            val cx = a.y * b.z - a.z * b.y
-            val cy = a.z * b.x - a.x * b.z
-            val cz = a.x * b.y - a.y * b.x
-            return sqrt(cx * cx + cy * cy + cz * cz)
-        }
+        fun crossLength(a: Vector3, b: Vector3) = sqrt(sqr(a.y * b.z - a.z * b.y) + sqr(a.z * b.x - a.x * b.z) + sqr(a.x * b.y - a.y * b.x))
     }
 }

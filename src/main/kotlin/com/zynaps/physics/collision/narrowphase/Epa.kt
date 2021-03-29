@@ -28,7 +28,6 @@ internal class Epa {
     private val mkvPool = ObjectPool { Mkv() }
     private val facePool = ObjectPool { Face() }
     private var root: Face? = null
-    private val features = Array(2) { Array(3) { Vector3.ZERO } }
     private var faceCount = 0
     private var depth = 0F
     private val baseMkv = Array(4) { Mkv() }
@@ -105,12 +104,12 @@ internal class Epa {
         } else {
             normal = bestFace.n
             depth = bestFace.d.coerceAtLeast(0F)
-            features[0][0] = gjk.localSupport(bestFace.v[0].r, 0)
-            features[0][1] = gjk.localSupport(bestFace.v[1].r, 0)
-            features[0][2] = gjk.localSupport(bestFace.v[2].r, 0)
-            features[1][0] = gjk.localSupport(-bestFace.v[0].r, 1)
-            features[1][1] = gjk.localSupport(-bestFace.v[1].r, 1)
-            features[1][2] = gjk.localSupport(-bestFace.v[2].r, 1)
+            val features00 = gjk.localSupport(bestFace.v[0].r, 0)
+            val features01 = gjk.localSupport(bestFace.v[1].r, 0)
+            val features02 = gjk.localSupport(bestFace.v[2].r, 0)
+            val features10 = gjk.localSupport(-bestFace.v[0].r, 1)
+            val features11 = gjk.localSupport(-bestFace.v[1].r, 1)
+            val features12 = gjk.localSupport(-bestFace.v[2].r, 1)
             val w0 = bestFace.v[0].w + bestFace.n * bestFace.d
             val w1 = bestFace.v[1].w + bestFace.n * bestFace.d
             val w2 = bestFace.v[2].w + bestFace.n * bestFace.d
@@ -118,8 +117,8 @@ internal class Epa {
             val y = Vector3.crossLength(w1, w2)
             val z = Vector3.crossLength(w2, w0)
             val dn = 1F / (x + y + z).coerceAtLeast(Globals.TINY)
-            nearest[0] = features[0][0] * (y * dn) + features[0][1] * (z * dn) + features[0][2] * (x * dn)
-            nearest[1] = features[1][0] * (y * dn) + features[1][1] * (z * dn) + features[1][2] * (x * dn)
+            nearest[0] = features00 * (y * dn) + features01 * (z * dn) + features02 * (x * dn)
+            nearest[1] = features10 * (y * dn) + features11 * (z * dn) + features12 * (x * dn)
         }
         return depth
     }

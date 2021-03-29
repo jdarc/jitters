@@ -19,8 +19,8 @@
 
 package com.zynaps.graphics
 
+import com.zynaps.math.Scalar.ceil
 import java.lang.Math.fma
-import kotlin.math.ceil
 
 internal class Edge {
     var y = 0
@@ -39,10 +39,10 @@ internal class Edge {
     var lOverZStep = 0F
 
     fun compute(a: Vertex, b: Vertex, gradients: Gradients, height: Int): Int {
-        y = ceil(a.y).toInt()
+        y = ceil(a.y)
         if (y < 0) y = 0
 
-        this.height = ceil(b.y).toInt()
+        this.height = ceil(b.y)
         if (this.height > height) this.height = height
 
         this.height -= y

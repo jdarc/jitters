@@ -32,6 +32,8 @@ class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHa
     private val added = mutableSetOf<RigidBody>()
     private val removed = mutableSetOf<RigidBody>()
 
+    var applyGravity = true
+
     var gravity = Vector3(0F, -9.8F, 0F)
 
     fun addBody(body: RigidBody) {
@@ -47,10 +49,10 @@ class Simulation(broadPhase: BroadPhase, narrowPhase: NarrowPhase) : CollisionHa
     }
 
     fun integrate(dt: Float) {
-        val activeBodies = bodies.toTypedArray().filter { it.isActive }
+        val activeBodies = bodies.filter { it.isActive }
 
         for (body in activeBodies) {
-            if (body.applyGravity) body.addWorldForce(gravity * body.mass)
+            if (applyGravity) body.addWorldForce(gravity * body.mass)
             body.storeState()
             body.updateVelocity(dt)
             body.updatePosition(dt)

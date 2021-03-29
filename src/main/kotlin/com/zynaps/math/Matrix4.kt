@@ -100,6 +100,13 @@ data class Matrix4(
     companion object {
         val IDENTITY = Matrix4(1F, 0F, 0F, 0F, 0F, 1F, 0F, 0F, 0F, 0F, 1F, 0F, 0F, 0F, 0F, 1F)
 
+        fun transformNormal(m: Matrix4, v: Vector3): Vector3 {
+            val x = m.m00 * v.x + m.m01 * v.y + m.m02 * v.z
+            val y = m.m10 * v.x + m.m11 * v.y + m.m12 * v.z
+            val z = m.m20 * v.x + m.m21 * v.y + m.m22 * v.z
+            return Vector3(x, y, z)
+        }
+
         fun transpose(matrix: Matrix4) = Matrix4(
             matrix.m00, matrix.m01, matrix.m02, matrix.m03,
             matrix.m10, matrix.m11, matrix.m12, matrix.m13,
