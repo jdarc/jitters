@@ -28,13 +28,13 @@ import kotlin.math.max
 class ConvexHull(private val points: Array<Vector3>, scale: Float = 1F, tolerance: Float = Globals.COLLISION_TOLERANCE) : CollisionSkin() {
     private val scale = scale + tolerance
 
-    private val bounds = points.fold(Aabb(), { box, vec -> box.aggregate(vec) })
+    private val bounds = points.fold(Aabb()) { box, vec -> box.aggregate(vec * this.scale) }
 
     override var origin = Vector3.ZERO
 
     override var basis = Matrix4.IDENTITY
 
-    override val boundingSphere = max(bounds.width, max(bounds.height, bounds.depth)) * 0.5F * this.scale
+    override val boundingSphere = max(bounds.width, max(bounds.height, bounds.depth)) * 0.5F
 
     override fun getSupport(direction: Vector3) = basis * getSupportLocal(direction * basis) + origin
 

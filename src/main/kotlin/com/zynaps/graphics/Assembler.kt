@@ -52,9 +52,9 @@ class Assembler {
     fun withMaterial(material: Material) = triangles.forEach { it.material = material }
 
     fun centerAndScale() {
-        val cog = positions.fold(Vector3.ZERO, { acc, cur -> acc + cur }) / positions.size.toFloat()
-        val min = positions.fold(Vector3.ZERO, { acc, cur -> Vector3.min(acc, cur) })
-        val max = positions.fold(Vector3.ZERO, { acc, cur -> Vector3.max(acc, cur) })
+        val cog = positions.fold(Vector3.ZERO) { acc, cur -> acc + cur } / positions.size.toFloat()
+        val min = positions.fold(Vector3.ZERO) { acc, cur -> Vector3.min(acc, cur) }
+        val max = positions.fold(Vector3.ZERO) { acc, cur -> Vector3.max(acc, cur) }
         val size = max - min
         val resize = kotlin.math.max(size.x, kotlin.math.max(size.y, size.z))
         val scaled = positions.map { (it - cog) / resize }
@@ -106,7 +106,7 @@ class Assembler {
 
         fun optimize(vb: List<Vertex>): Mesh {
             val vertices = mutableMapOf<Vertex, Int>()
-            val indices = vb.indices.map { vertices.getOrPut(vb[it], { vertices.size }) }
+            val indices = vb.indices.map { vertices.getOrPut(vb[it]) { vertices.size } }
             return Mesh(
                 toVertexBuffer(vertices.keys.toTypedArray()),
                 indices.toIntArray()
@@ -114,7 +114,7 @@ class Assembler {
         }
 
         fun toVertexBuffer(vertices: Array<Vertex>) =
-            vertices.fold(floatArrayOf(), { acc, vertex -> acc + vertex.toArray() }).toTypedArray().toFloatArray()
+            vertices.fold(floatArrayOf()) { acc, vertex -> acc + vertex.toArray() }.toTypedArray().toFloatArray()
 
         data class Vertex(val position: Vector3, val normal: Vector3, val uv: Vector3) {
             fun toArray() = floatArrayOf(position.x, position.y, position.z, normal.x, normal.y, normal.z, uv.x, uv.y)

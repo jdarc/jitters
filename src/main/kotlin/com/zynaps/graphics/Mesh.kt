@@ -23,7 +23,7 @@ import com.zynaps.math.Aabb
 import com.zynaps.math.Vector3
 
 class Mesh(private val vertexBuffer: FloatArray, private val indexBuffer: IntArray) : Geometry {
-    override val bounds = extractPoints().fold(Aabb(), { acc, point -> acc.aggregate(point.x, point.y, point.z) })
+    override val bounds = extractPoints().fold(Aabb()) { acc, point -> acc.aggregate(point.x, point.y, point.z) }
 
     override fun render(device: Device) = device.draw(vertexBuffer, indexBuffer, indexBuffer.size)
 
