@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.0-M2"
+    id("org.jetbrains.kotlin.jvm") version "1.5.0-RC"
     application
 }
 
@@ -11,9 +11,8 @@ application { mainClass.set("ProgramKt") }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        useIR = true
-        jvmTarget = "11"
+        version = 16
+        jvmTarget = "16"
         languageVersion = "1.5"
-        freeCompilerArgs = listOf("-Xinline-classes")
     }
 }

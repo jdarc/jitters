@@ -27,7 +27,7 @@ interface Material {
     }
 }
 
-inline class ColorMaterial(private val color: Int) : Material {
+class ColorMaterial(private val color: Int) : Material {
     override fun sample(u: Float, v: Float) = color
 }
 

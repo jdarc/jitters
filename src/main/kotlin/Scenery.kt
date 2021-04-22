@@ -126,8 +126,7 @@ class Scenery(private val scene: Scene, private val simulation: Simulation) {
         val grunt = getModelAndHull("grunt.obj")
         val triceratops = getModelAndHull("triceratops.obj")
         val bowlingPin = getModelAndHull("bowlingpin.obj")
-        val sonic = getModelAndHull("sonic.obj")
-        models = arrayOf(dino, grunt, triceratops, bowlingPin, sonic)
+        models = arrayOf(dino, grunt, triceratops, bowlingPin)
     }
 
     private companion object {

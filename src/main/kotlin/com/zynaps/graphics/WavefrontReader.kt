@@ -38,7 +38,7 @@ class WavefrontReader {
                     it.startsWith("vt ", true) -> assembler.addUvCoordinate(floats(it, "vt ".length).toFloatArray())
                     it.startsWith("vn ", true) -> assembler.addNormal(floats(it, "vn ".length).toFloatArray())
                     it.startsWith("f ", true) -> assembleFace(it, smooth, material, assembler)
-                    it.startsWith("s ", true) -> smooth = isSmoothing(it.substring("s ".length).trim().toLowerCase())
+                    it.startsWith("s ", true) -> smooth = isSmoothing(it.substring("s ".length).trim().lowercase())
                     it.startsWith("usemtl ", true) -> material = materials[it.substring("usemtl ".length)] ?: Material.DEFAULT
                 }
             }
